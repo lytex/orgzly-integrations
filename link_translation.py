@@ -106,7 +106,9 @@ def add_orgzly_flat_links(content: str) -> str:
         + r")?\]\[("
         + linkname_regex
         + r"\])\]"
-        + r"(?!\n\[\[file:\2\3\]\[\4\]\])",  # Do not replace if already replaced
+        # TODO It should be two \] at the end but then it misses some already relaced links!
+        #      Has to do with greedy matching?
+        + r"(?!\n\[\[file:\2(\3)?\]\[\4\])",  # Do not replace if already replaced
         r"\g<0>\n[[file:\2\3][\4]]",
         content,
     )
@@ -125,7 +127,7 @@ for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
         uuid = item.properties.get("ID", str(uuid4()))  # Create id if not exists only
         custom_to_id.update({item.properties["custom_id"]: uuid})
 
-    result = str(root[0]) + "\n".join([add_orgzly_flat_links(add_id(x)) for x in root[1:]])
+    result = str(root[0]) + "\n" + "\n".join([add_orgzly_flat_links(add_id(x)) for x in root[1:]])
 
     with open(path, "w") as f:
         # Overwrite content
