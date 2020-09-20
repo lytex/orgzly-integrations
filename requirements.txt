@@ -5,3 +5,4 @@
 #    pip-compile
 #
 orgparse==0.1.4           # via -r requirements.in
+python-dotenv==0.14.0     # via -r requirements.in

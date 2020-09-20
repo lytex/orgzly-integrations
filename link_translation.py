@@ -1,13 +1,17 @@
+import os
 import re
 from glob import glob
 from typing import Callable, Iterable
 from uuid import uuid4
-import os
 
+from dotenv import load_dotenv
 from orgparse import loads
 from orgparse.node import OrgBaseNode
 
-ORG_DIRECTORY = os.environ.get("ORG_DIRECTORY")
+load_dotenv()
+
+ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
+print(ORG_DIRECTORY)
 
 
 # Global variables specifying what whe mean when we say directorypath, orgfile, linkname, ...

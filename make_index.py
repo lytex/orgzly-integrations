@@ -1,9 +1,13 @@
-from typing import Iterable
 import os
 from os.path import isdir
+from typing import Iterable
 
-ORG_DIRECTORY = os.environ.get("ORG_DIRECTORY")
-ORGZLY_FILE_INDEX = os.environ.get("ORGZLY_FILE_INDEX")
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
+ORGZLY_FILE_INDEX = os.getenv("ORGZLY_FILE_INDEX")
 
 os.chdir(ORG_DIRECTORY)
 
