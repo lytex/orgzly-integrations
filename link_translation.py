@@ -11,7 +11,7 @@ ORG_DIRECTORY = os.environ.get("ORG_DIRECTORY")
 
 
 # Global variables specifying what whe mean when we say directorypath, orgfile, linkname, ...
-directorypath_regex = r"([ \w\d_-]*/)*"
+directorypath_regex = r"([ \w\d_-]*/)+"
 orgfile_regex = r"[ \w\d_\.-]*\.org"
 linkname_regex = r"[ \w\d_\.-]+"
 linksearch_regex = r"[\*#]" + linkname_regex
@@ -79,10 +79,18 @@ def add_orgzly_flat_links(content: str) -> str:
     """Strips the directories out of file links to work with orgzly, flattening the directory structure in one big
     directory so that orgzly can work with it
     Also retains the previous links with \g<0> so that everything works as normal in emacs"""
+    # TODO Check why it's not working properly
 
     # Substitute simple links [[file:folder1/folder2/my.org]] -> [[file:my.org]]
     content = re.sub(
-        r"\[\[file:" + directorypath_regex + r"(" + orgfile_regex + r")(::" + linksearch_regex + r")?\]\]",
+        r"\[\[file:"
+        + directorypath_regex
+        + r"("
+        + orgfile_regex
+        + r")(::"
+        + linksearch_regex
+        + r")?\]\]"
+        + r"(?!\n\[\[file:\2\3\]\])",  # Do not replace if already replaced
         r"\g<0>\n[[file:\2\3]]",
         content,
     )
@@ -97,8 +105,9 @@ def add_orgzly_flat_links(content: str) -> str:
         + linksearch_regex
         + r")?\]\[("
         + linkname_regex
-        + r"\])\]",
-        r"\g<0>\n[[file:\2][\3]]",
+        + r"\])\]"
+        + r"(?!\n\[\[file:\2\3\]\[\4\]\])",  # Do not replace if already replaced
+        r"\g<0>\n[[file:\2\3][\4]]",
         content,
     )
 
