@@ -11,13 +11,12 @@ from orgparse.node import OrgBaseNode
 load_dotenv()
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
-print(ORG_DIRECTORY)
-
 
 # Global variables specifying what whe mean when we say directorypath, orgfile, linkname, ...
-directorypath_regex = r"([ \w\d_-]*/)+"
-orgfile_regex = r"[ \w\d_\.-]*\.org"
-linkname_regex = r"[ \w\d_\.-]+"
+# ext4 allows every character except / and NULL to be part of a directory or filename
+directorypath_regex = r"([^\n/]*/)+"
+orgfile_regex = r"[^\n/]*\.org"
+linkname_regex = r"[^\n\[\]]+"
 linksearch_regex = r"[\*#]" + linkname_regex
 
 
