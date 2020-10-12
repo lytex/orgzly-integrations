@@ -20,19 +20,6 @@ linkname_regex = r"[^\[\]]+"
 linksearch_regex = r"[\*#]" + linkname_regex
 
 
-print(
-    r"\[\[file:"
-    + directorypath_regex
-    + r"("
-    + orgfile_regex
-    + r")\]((:?\["
-    + linkname_regex
-    + r"\])?)\]"
-    + r"(?! \[\[file:\2\]\3\])",  # Do not replace if already replaced
-    r"\g<0> [[file:\2]\3]",
-)
-
-
 def recursive_filter(condition: Callable[[OrgBaseNode], bool], root: Iterable[OrgBaseNode]) -> Iterable[OrgBaseNode]:
     """recursively trasvese all possible nodes from root and return only those for which
         condition returns True
