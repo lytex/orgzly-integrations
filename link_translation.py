@@ -14,10 +14,23 @@ ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 
 # Global variables specifying what whe mean when we say directorypath, orgfile, linkname, ...
 # ext4 allows every character except / and NULL to be part of a directory or filename
-directorypath_regex = r"([^\n/]*/)+"
-orgfile_regex = r"[^\n/]*\.org"
-linkname_regex = r"[^\n\[\]]+"
+directorypath_regex = r"([^\[\]/]*/)+"
+orgfile_regex = r"[^\[\]/]*\.org"
+linkname_regex = r"[^\[\]]+"
 linksearch_regex = r"[\*#]" + linkname_regex
+
+
+print(
+    r"\[\[file:"
+    + directorypath_regex
+    + r"("
+    + orgfile_regex
+    + r")\]((:?\["
+    + linkname_regex
+    + r"\])?)\]"
+    + r"(?! \[\[file:\2\]\3\])",  # Do not replace if already replaced
+    r"\g<0> [[file:\2]\3]",
+)
 
 
 def recursive_filter(condition: Callable[[OrgBaseNode], bool], root: Iterable[OrgBaseNode]) -> Iterable[OrgBaseNode]:
@@ -82,37 +95,19 @@ def add_orgzly_flat_links(content: str) -> str:
     """Strips the directories out of file links to work with orgzly, flattening the directory structure in one big
     directory so that orgzly can work with it
     Also retains the previous links with \g<0> so that everything works as normal in emacs"""
-    # TODO Check why it's not working properly
 
     # Substitute simple links [[file:folder1/folder2/my.org]] -> [[file:my.org]]
-    content = re.sub(
-        r"\[\[file:"
-        + directorypath_regex
-        + r"("
-        + orgfile_regex
-        + r")(::"
-        + linksearch_regex
-        + r")?\]\]"
-        + r"(?!\n\[\[file:\2\3\]\])",  # Do not replace if already replaced
-        r"\g<0>\n[[file:\2\3]]",
-        content,
-    )
-
     # Substitute links with names [[file:folder1/folder2/my.org][name]] ->[[file:my.org][name]]
     content = re.sub(
         r"\[\[file:"
         + directorypath_regex
         + r"("
         + orgfile_regex
-        + r")(::"
-        + linksearch_regex
-        + r")?\]\[("
+        + r")\]((:?\["
         + linkname_regex
-        + r"\])\]"
-        # TODO It should be two \] at the end but then it misses some already relaced links!
-        #      Has to do with greedy matching?
-        + r"(?!\n\[\[file:\2(\3)?\]\[\4\])",  # Do not replace if already replaced
-        r"\g<0>\n[[file:\2\3][\4]]",
+        + r"\])?)\]"
+        + r"(?! \[\[file:\2\]\3\])",  # Do not replace if already replaced
+        r"\g<0> [[file:\2]\3]",
         content,
     )
 
