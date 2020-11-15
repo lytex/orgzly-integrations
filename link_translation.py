@@ -113,6 +113,20 @@ def add_orgzly_flat_links(content: str) -> str:
         content,
     )
 
+    # Substitute simple links [[file:~/Documents/doc.pdf]] -> [[file:Documents/doc.pdf]]
+    # Substitute links with names [[file:~/Documents/doc.pdf][Name]] -> [[file:Documents/doc.pdf][Name]]
+    content = re.sub(
+        r"\[\[file:~/"
+        + r"("
+        + generic_orglink_regex
+        + r")\]((:?\["
+        + linkname_regex
+        + r"\])?)\]"
+        + r"(?! \[\[file:\1\]\2\])",  # Do not replace if already replaced
+        r"\g<0> [[file:\1]\2]",
+        content,
+    )
+
     return content
 
 
