@@ -22,6 +22,7 @@ else
     # TODO Configure with notify-send
     NOTIF_CMD="true"
     NOTIF_CONFLICT="true"
+fi
 
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
