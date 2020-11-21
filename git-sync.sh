@@ -22,6 +22,7 @@ for cmd in "git" "$INW" "timeout"; do
 done
 
 cd "$ORG_DIRECTORY"
+echo -e "*\n**\n!*.org\n!.gitignore" > .gitignore
 echo "$INCOMMAND"
 
 while true; do
