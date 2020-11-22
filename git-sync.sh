@@ -35,8 +35,6 @@ cd "$ORG_DIRECTORY"
 echo -e "*\n**\n!*.org\n!.gitignore" > .gitignore
 echo "$INCOMMAND"
 
-AM=echo
-
 while true; do
     eval "timeout 10 $INCOMMAND" || true
     PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
