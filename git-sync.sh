@@ -36,7 +36,7 @@ echo -e "*\n**\n!*.org\n!.gitignore" > .gitignore
 echo "$INCOMMAND"
 
 while true; do
-    eval "timeout 600 $INCOMMAND" || true
+    eval "timeout 5 $INCOMMAND" || true
     git pull || $NOTIF_CONFLICT
     sleep 5
     STATUS=$(git status -s)
