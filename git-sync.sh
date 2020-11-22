@@ -41,7 +41,7 @@ while true; do
     eval "timeout 10 $INCOMMAND" || true
     PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
     echo $PULL_RESULT
-    if [ "$PULL_RESULT" =  "Already up to date." ]; then
+    if [ "$PULL_RESULT" !=  "Already up to date." ]; then
         $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
     fi
     STATUS=$(git status -s)
