@@ -19,17 +19,20 @@ RETRY_SECONDS=10
 if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
-    NOTIF_CONFLICT="$NOTIF_CMD -c 'sync conflict!' --id 'sync-conflict' --ongoing"
-    NOTIF_LOST_CONNECTION="$NOTIF_CMD -c 'Lost connection to $SYNC_HOST! Retrying in $RETRY_SECONDS sec'
-        \--id 'lost-connection' --ongoing"
-    NOTIF_ERROR="$NOTIF_CMD -c 'error: restart git-sync!' --id 'error' --ongoing"
+    NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
+    NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id 'lost-connection' --ongoing"
+    NOTIF_ERROR="$NOTIF_CMD -t git-sync -c ERROR --id error --ongoing"
 else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
-    NOTIF_CONFLICT='notify-send git-sync conflict -t 0'
-    NOTIF_LOST_CONNECTION="notify-send git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
-    NOTIF_ERROR="notify-send git-sync ERROR -t 0"
+    NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
+    NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
+    NOTIF_ERROR="$NOTIF_CMD git-sync ERROR -t 0"
 fi
+
+$NOTIF_CONFLICT
+$NOTIF_LOST_CONNECTION
+$NOTIF_ERROR
 
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
