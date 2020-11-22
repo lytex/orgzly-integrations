@@ -39,6 +39,7 @@ while true; do
     eval "timeout 5 $INCOMMAND" || true
     git pull || $NOTIF_CONFLICT
     sleep 5
+    $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
     STATUS=$(git status -s)
     if [ -n "$STATUS" ]; then
         echo "$STATUS"
