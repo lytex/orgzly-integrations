@@ -49,7 +49,5 @@ while true; do
         git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
         git push origin || $NOTIF_CONFLICT
         $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
-    else
-        echo "won't commit, file excluded in .gitignore"
     fi
 done
