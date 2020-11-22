@@ -44,7 +44,7 @@ echo "$INCOMMAND"
 
 (
 while true; do
-    while ping -c 4 "$SYNC_HOST" &> /dev/null; do # Ensure connectivity
+    while ping -c 1 "$SYNC_HOST" &> /dev/null; do # Ensure connectivity
         eval "timeout 10 $INCOMMAND" || true
         PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
         echo $PULL_RESULT
