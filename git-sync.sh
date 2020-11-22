@@ -13,7 +13,7 @@ is_command() {
     command -v "$1" &>/dev/null
 }
 
-if is_command termux_info; then
+if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
     NOTIF_CONFLICT="$NOTIF_CMD -c 'sync conflict!' --id 'sync-conflict'"
