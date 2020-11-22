@@ -60,7 +60,6 @@ while true; do
             # TODO commit only once, get --name-only information from another source
             git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
             git push origin || $NOTIF_CONFLICT
-            $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
         fi
     done
     $NOTIF_LOST_CONNECTION
