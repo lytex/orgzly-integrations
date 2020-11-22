@@ -35,11 +35,15 @@ cd "$ORG_DIRECTORY"
 echo -e "*\n**\n!*.org\n!.gitignore" > .gitignore
 echo "$INCOMMAND"
 
+AM=echo
+
 while true; do
-    eval "timeout 5 $INCOMMAND" || true
-    git pull || $NOTIF_CONFLICT
-    sleep 5
-    $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+    eval "timeout 10 $INCOMMAND" || true
+    PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
+    echo $PULL_RESULT
+    if [ "$PULL_RESULT" =  "Already up to date." ]; then
+        $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+    fi
     STATUS=$(git status -s)
     if [ -n "$STATUS" ]; then
         echo "$STATUS"
