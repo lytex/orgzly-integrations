@@ -30,9 +30,6 @@ else
     NOTIF_ERROR="$NOTIF_CMD git-sync ERROR -t 0"
 fi
 
-$NOTIF_CONFLICT
-$NOTIF_LOST_CONNECTION
-$NOTIF_ERROR
 
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
