@@ -13,14 +13,22 @@ is_command() {
     command -v "$1" &>/dev/null
 }
 
+SYNC_HOST="lytex.space"
+RETRY_SECONDS=10
+
 if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
-    NOTIF_CONFLICT="$NOTIF_CMD -c 'sync conflict!' --id 'sync-conflict'"
+    NOTIF_CONFLICT="$NOTIF_CMD -c 'sync conflict!' --id 'sync-conflict' --ongoing"
+    NOTIF_LOST_CONNECTION="$NOTIF_CMD -c 'Lost connection to $SYNC_HOST! Retrying in $RETRY_SECONDS sec'
+        \--id 'lost-connection' --ongoing"
+    NOTIF_ERROR="$NOTIF_CMD -c 'error: restart git-sync!' --id 'error' --ongoing"
 else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
-    NOTIF_CONFLICT="notify-send 'sync conflict! -t 0"
+    NOTIF_CONFLICT='notify-send git-sync conflict -t 0'
+    NOTIF_LOST_CONNECTION="notify-send git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
+    NOTIF_ERROR="notify-send git-sync ERROR -t 0"
 fi
 
 INW="inotifywait";
@@ -32,25 +40,31 @@ for cmd in "git" "$INW" "timeout" "$AM" "$NOTIF_CMD"; do
 done
 
 cd "$ORG_DIRECTORY"
-echo -e "*\n**\n!*.org\n!.gitignore" > .gitignore
 echo "$INCOMMAND"
 
+(
 while true; do
-    eval "timeout 10 $INCOMMAND" || true
-    PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
-    echo $PULL_RESULT
-    if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-        $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
-    fi
-    STATUS=$(git status -s)
-    if [ -n "$STATUS" ]; then
-        echo "$STATUS"
-        echo "commit!"
-        git add .
-        git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
-        # TODO commit only once, get --name-only information from another source
-        git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
-        git push origin || $NOTIF_CONFLICT
-        $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
-    fi
-done
+    while ping -c 4 "$SYNC_HOST" &> /dev/null; do # Ensure connectivity
+        eval "timeout 10 $INCOMMAND" || true
+        PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
+        echo $PULL_RESULT
+        if [ "$PULL_RESULT" !=  "Already up to date." ]; then
+            $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+        fi
+        STATUS=$(git status -s)
+        if [ -n "$STATUS" ]; then
+            echo "$STATUS"
+            echo "commit!"
+            git add .
+            git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
+            # TODO commit only once, get --name-only information from another source
+            git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
+            git push origin || $NOTIF_CONFLICT
+            $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+        fi
+    done
+    $NOTIF_LOST_CONNECTION
+    sleep $RETRY_SECONDS
+done 
+) || NOTIF_ERROR
+
