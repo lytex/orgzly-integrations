@@ -19,9 +19,8 @@ if is_command termux_info; then
     NOTIF_CONFLICT="$NOTIF_CMD -c 'sync conflict!' --id 'sync-conflict'"
 else
     AM="true" # Disable command
-    # TODO Configure with notify-send
-    NOTIF_CMD="true"
-    NOTIF_CONFLICT="true"
+    NOTIF_CMD="notify-send"
+    NOTIF_CONFLICT="notify-send 'sync conflict! -t 0"
 fi
 
 INW="inotifywait";
@@ -46,7 +45,11 @@ while true; do
         echo "commit!"
         git add .
         git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
+        # TODO commit only once, get --name-only information from another source
+        git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
         git push origin || $NOTIF_CONFLICT
         $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+    else
+        echo "won't commit, file excluded in .gitignore"
     fi
 done
