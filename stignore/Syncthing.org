@@ -1,0 +1,20 @@
+* Syncthing
+** setup
+My setup is currently
+*** Computer
+~ = /home/$USER
+└── ~/org/
+    ├── code/ (Soft link to ~/code)
+    ├── Documents/ (Soft link to ~/Documents)
+    └── regular org files and folders
+
+*** Android devices
+~ = /storage/emulated/0
+├── ~/orgzly/
+│   └── regular org files and folders
+├── ~/code/
+└── ~/Documents/
+
+*** orgzly
+orgzly links that are not links to existing notebooks are prepended by =/storage/emulated/0=.
+A way to make links work in both a computer with emacs and orgzly (e.g. =file:Documents/MyDoc.pdf=) is to have on your computer a link to ~/Documents and ~/code *inside* org folder, so that links are interpreted as relative to /home/$USER/org in your computer, and relative to /storage/emulated/0 (or equivalent user root directory) in your Android devices
