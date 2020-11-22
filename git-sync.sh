@@ -20,7 +20,7 @@ if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
-    NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id 'lost-connection' --ongoing"
+    NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
     NOTIF_ERROR="$NOTIF_CMD -t git-sync -c ERROR --id error --ongoing"
 else
     AM="true" # Disable command
