@@ -59,7 +59,7 @@ while true; do
             git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
             # TODO commit only once, get --name-only information from another source
             git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
-            git push origin || $NOTIF_CONFLICT
+            git push || git pull && git push || $NOTIF_CONFLICT
         fi
     done
     $NOTIF_LOST_CONNECTION
