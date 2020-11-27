@@ -21,13 +21,11 @@ if is_command termux-info; then
     NOTIF_CMD="termux-notification"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
-    NOTIF_ERROR="$NOTIF_CMD -t git-sync -c ERROR --id error --ongoing"
 else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
-    NOTIF_ERROR="$NOTIF_CMD git-sync ERROR -t 0"
 fi
 
 
@@ -42,7 +40,6 @@ done
 cd "$ORG_DIRECTORY"
 echo "$INCOMMAND"
 
-(
 while true; do
     while ping -c 1 "$SYNC_HOST" &> /dev/null; do # Ensure connectivity
         eval "timeout 10 $INCOMMAND" || true
@@ -65,5 +62,3 @@ while true; do
     $NOTIF_LOST_CONNECTION
     sleep $RETRY_SECONDS
 done 
-) || NOTIF_ERROR
-
