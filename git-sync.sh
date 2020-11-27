@@ -15,7 +15,7 @@ is_command() {
 
 SYNC_HOST="lytex.space"
 RETRY_SECONDS=10
-TIMEOUTPING_CMD="timeout 2 ping -c 1 $SYNC_HOST &> /dev/null"
+TIMEOUT_PING="(timeout 2 ping -c 1 $SYNC_HOST) &> /dev/null"
 
 if is_command termux-info; then
     AM="am" # termux activity manager
@@ -32,9 +32,10 @@ fi
 check_conflict() {
     if (( $1 != 0 )); then
         # Either there is a merge conflict or connection has been lost
-        # If TIMEOUTPING_CMD works, we assume it's a merge conflict, otherwise, connection has been lost
-        $TIMEOUTPING_CMD && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+        # If TIMEOUT_PING works, we assume it's a merge conflict, otherwise, connection has been lost
+        eval "$TIMEOUT_PING" && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
     fi
+}
 
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
@@ -48,7 +49,7 @@ cd "$ORG_DIRECTORY"
 echo "$INCOMMAND"
 
 while true; do
-    while $TIMEOUTPING_CMD; do # Ensure connectivity
+    while eval "$TIMEOUT_PING"; do # Ensure connectivity
         eval "timeout 10 $INCOMMAND" || true
         PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
         check_conflict "$?"
