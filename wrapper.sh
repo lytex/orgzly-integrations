@@ -9,4 +9,4 @@ else
 fi
 
 LOGFILE="$HOME/git-sync.log"
-source git-sync.sh > $LOGFILE 2>&1 || $NOTIF_ERROR
+./git-sync.sh >> $LOGFILE 2>&1 || $NOTIF_ERROR
