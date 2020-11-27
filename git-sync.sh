@@ -15,6 +15,7 @@ is_command() {
 
 SYNC_HOST="lytex.space"
 RETRY_SECONDS=10
+TIMEOUTPING_CMD="timeout 2 ping -c 1 $SYNC_HOST &> /dev/null"
 
 if is_command termux-info; then
     AM="am" # termux activity manager
@@ -28,6 +29,12 @@ else
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
 fi
 
+check_conflict() {
+    if (( $1 != 0 )); then
+        # Either there is a merge conflict or connection has been lost
+        # If TIMEOUTPING_CMD works, we assume it's a merge conflict, otherwise, connection has been lost
+        $TIMEOUTPING_CMD && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+    fi
 
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
@@ -41,9 +48,10 @@ cd "$ORG_DIRECTORY"
 echo "$INCOMMAND"
 
 while true; do
-    while ping -c 1 "$SYNC_HOST" &> /dev/null; do # Ensure connectivity
+    while $TIMEOUTPING_CMD; do # Ensure connectivity
         eval "timeout 10 $INCOMMAND" || true
         PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
+        check_conflict "$?"
         echo $PULL_RESULT
         if [ "$PULL_RESULT" !=  "Already up to date." ]; then
             $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
@@ -56,7 +64,8 @@ while true; do
             git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
             # TODO commit only once, get --name-only information from another source
             git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
-            git push || git pull && git push || $NOTIF_CONFLICT
+            git push || git pull && git push
+            check_conflict "$?"
         fi
     done
     $NOTIF_LOST_CONNECTION
