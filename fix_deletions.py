@@ -9,9 +9,12 @@ from git import Repo
 load_dotenv()
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
+print(123)
 os.chdir(ORG_DIRECTORY)
+print(456)
 
 repo = Repo(ORG_DIRECTORY)
+print(444)
 
 last_commit = next(repo.iter_commits())
 
