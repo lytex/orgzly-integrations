@@ -21,7 +21,7 @@ TIMEOUT_PING="(timeout 2 ping -c 1 $SYNC_HOST) &> /dev/null"
 
 if is_command termux-info; then
     AM="am" # termux activity manager
-    FIX_DEL="./fix_deletions.py"
+    FIX_DEL="`pwd`/fix_deletions.py"
     NOTIF_CMD="termux-notification"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
