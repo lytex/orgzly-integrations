@@ -41,6 +41,13 @@ check_conflict() {
     fi
 }
 
+git_add_commit() {
+    git add .
+    git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
+    # TODO commit only once, get --name-only information from another source
+    git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
+}
+
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
 INCOMMAND="\"$INW\" -qr -e \"$EVENTS\" --exclude \"\.git\" \"$ORG_DIRECTORY\""
@@ -65,11 +72,9 @@ while true; do
         if [ -n "$STATUS" ]; then
             echo "$STATUS"
             echo "commit!"
-            git add .
-            git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
-            # TODO commit only once, get --name-only information from another source
-            git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
-            $FIX_DEL || "timeout $FIX_DEL_TIMEOUT $INCOMMAND" # Wait FIX_DEL_TIMEOUT if big change has occured
+            git_add_commit
+            # Wait FIX_DEL_TIMEOUT if big change has occured
+            $FIX_DEL || eval "timeout $FIX_DEL_TIMEOUT $INCOMMAND" && git reset && git_add_commit || true
             git push || git pull && git push || git checkout -b `date +'%Y%m%d%H%M%S'` && git push
             check_conflict "$?"
         fi
