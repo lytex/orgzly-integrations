@@ -37,7 +37,7 @@ check_conflict() {
     if (( $1 != 0 )); then
         # Either there is a merge conflict or connection has been lost
         # If TIMEOUT_PING works, we assume it's a merge conflict, otherwise, connection has been lost
-        eval "$TIMEOUT_PING" && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+        eval "$TIMEOUT_PING" && ($NOTIF_CONFLICT; git_push_new_branch) || $NOTIF_LOST_CONNECTION
     fi
 }
 
@@ -46,6 +46,11 @@ git_add_commit() {
     git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
     # TODO commit only once, get --name-only information from another source
     git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
+}
+
+git_push_new_branch(){
+    now=$(date +'%Y%m%d%H%M%S')
+    git checkout -b "$now"  && git push --set-upstream origin "$now"
 }
 
 INW="inotifywait";
@@ -75,7 +80,7 @@ while true; do
             git_add_commit
             # Wait FIX_DEL_TIMEOUT if big change has occured
             $FIX_DEL || eval "timeout $FIX_DEL_TIMEOUT $INCOMMAND" && git reset && git_add_commit || true
-            git push || git pull && git push || git checkout -b `date +'%Y%m%d%H%M%S'` && git push
+            git push || git pull && git push
             check_conflict "$?"
         fi
     done
