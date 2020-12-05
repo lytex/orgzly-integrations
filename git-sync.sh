@@ -13,9 +13,9 @@ is_command() {
     command -v "$1" &>/dev/null
 }
 
-SYNC_HOST="lytex.space"
+SYNC_HOST="lytex_space_git"
 RETRY_SECONDS=10
-TIMEOUT_PING="(timeout 2 ping -c 1 $SYNC_HOST) &> /dev/null"
+TIMEOUT_PING="(ssh -q $SYNC_HOST exit) &> /dev/null"
 
 if is_command termux-info; then
     AM="am" # termux activity manager
