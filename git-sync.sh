@@ -65,8 +65,7 @@ echo "$INCOMMAND"
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
         eval "timeout $WATCH_SECONDS $INCOMMAND" || true
-        PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
-        check_conflict "$?"
+        PULL_RESULT=$(git pull) || check_conflict "$?"
         echo $PULL_RESULT
         if [ "$PULL_RESULT" !=  "Already up to date." ]; then
             $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
