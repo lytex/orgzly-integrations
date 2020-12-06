@@ -81,7 +81,7 @@ while true; do
                 echo "commit!"
                 git_add_commit_push
             else
-                echo "file deleted!"
+                echo "file deleted! waiting $CONFIRM_SECONDS or until creation of new file"
                 eval "timeout $CONFIRM_SECONDS $INNEWFILE" || true
                 git_add_commit_push
             fi
