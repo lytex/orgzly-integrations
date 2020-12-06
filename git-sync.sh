@@ -32,8 +32,9 @@ fi
 check_conflict() {
     if (( $1 != 0 )); then
         # Either there is a merge conflict or connection has been lost
-        # If TIMEOUT_PING works, we assume it's a merge conflict, otherwise, connection has been lost
-        eval "$TIMEOUT_PING" && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+        # If TIMEOUT_PING works and there are some uncommited files (possibly because of a conflict),
+        # then, we assume it's a merge conflict, otherwise, we assume connection has been lost
+        eval "$TIMEOUT_PING" && [ -n "(git status -s)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
     fi
 }
 
