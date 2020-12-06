@@ -15,6 +15,8 @@ is_command() {
 
 SYNC_HOST="lytex_space_git"
 RETRY_SECONDS=10
+WATCH_SECONDS=10
+CONFIRM_SECONDS=60
 TIMEOUT_PING="(ssh -q $SYNC_HOST exit) &> /dev/null"
 
 if is_command termux-info; then
@@ -38,20 +40,31 @@ check_conflict() {
     fi
 }
 
+git_add_commit_push() {
+    git add .
+    git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
+    # TODO commit only once, get --name-only information from another source
+    git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
+    git push || git pull && git push
+    check_conflict "$?"
+}
+
 INW="inotifywait";
 EVENTS="close_write,move,delete,create";
 INCOMMAND="\"$INW\" -qr -e \"$EVENTS\" --exclude \"\.git\" \"$ORG_DIRECTORY\""
+INNEWFILE="\"$INW\" -qr -e \"close_write,create\" --exclude \"\.git\" \"$ORG_DIRECTORY\""
 
 for cmd in "git" "$INW" "timeout" "$AM" "$NOTIF_CMD"; do
     is_command "$cmd" || { stderr "Error: Required command '$cmd' not found"; exit 1; }
 done
 
+OLD_DIR=$(pwd)
 cd "$ORG_DIRECTORY"
 echo "$INCOMMAND"
 
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
-        eval "timeout 10 $INCOMMAND" || true
+        eval "timeout $WATCH_SECONDS $INCOMMAND" || true
         PULL_RESULT=$(git pull) || $NOTIF_CONFLICT
         check_conflict "$?"
         echo $PULL_RESULT
@@ -61,13 +74,17 @@ while true; do
         STATUS=$(git status -s)
         if [ -n "$STATUS" ]; then
             echo "$STATUS"
-            echo "commit!"
-            git add .
-            git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
-            # TODO commit only once, get --name-only information from another source
-            git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
-            git push || git pull && git push
-            check_conflict "$?"
+            deleted_status=0
+            python3 "$OLD_DIR/fix_deletions.py" || deleted_status=$?
+            echo $deleted_status $deleted_files
+            if (($deleted_status == 0)); then
+                echo "commit!"
+                git_add_commit_push
+            else
+                echo "file deleted!"
+                eval "timeout $CONFIRM_SECONDS $INNEWFILE" || true
+                git_add_commit_push
+            fi
         fi
     done
     $NOTIF_LOST_CONNECTION
