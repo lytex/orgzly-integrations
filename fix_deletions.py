@@ -7,7 +7,6 @@ from git import Repo
 load_dotenv()
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
-ORG_DIRECTORY = "."
 PREVIOUS_DIR = os.getcwd()
 os.chdir(ORG_DIRECTORY)
 
