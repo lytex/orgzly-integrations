@@ -1,6 +1,0 @@
-Introspección/
-// orgzly links that are not links to existing notebooks are prepended by
-// /storage/emulated/0. Therefore, file:Documents/MyDoc.pdf will only work if
-// you have on your personal computer a link to ~/Documents *inside* org folder
-Documents/
-code/
