@@ -17,7 +17,11 @@ SYNC_HOST="lytex_space_git"
 RETRY_SECONDS=10
 WATCH_SECONDS=10
 CONFIRM_SECONDS=60
-TIMEOUT_PING="(ssh -q $SYNC_HOST exit) &> /dev/null"
+if [ "$(uname -m)" == "armv7l" ]; then
+    TIMEOUT_PING="true"
+else
+    TIMEOUT_PING="(ssh -q $SYNC_HOST exit) &> /dev/null"
+
 
 if is_command termux-info; then
     AM="am" # termux activity manager
