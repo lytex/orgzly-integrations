@@ -21,6 +21,7 @@ if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
 else
     TIMEOUT_PING="(ssh -q $SYNC_HOST exit) &> /dev/null"
+fi
 
 
 if is_command termux-info; then
