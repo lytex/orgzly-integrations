@@ -24,6 +24,11 @@ if is_command termux-info; then
     NOTIF_CMD="termux-notification"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
+elif [ "$(uname -m)" == "armv7l" ] 
+    AM="true" # Disable command
+    NOTIF_CMD="echo `date`"
+    NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
+    NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
 else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
