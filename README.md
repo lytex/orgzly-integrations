@@ -18,3 +18,10 @@
 * Clone your repo. For example you can use the ORG_DIRECTORY variable you have just defined (make sure orgzly is empty, otherwise the repository won't be cloned) `source .env && git clone <path to your .org repo> $ORG_DIRECTORY`
 * Launch wrapper.sh
 
+# Autostart
+## termux
+* Run `termux/install.sh`
+
+## KDE
+* Run `kde/install.sh`
+
