@@ -17,6 +17,8 @@ SYNC_HOST="lytex_space_git"
 RETRY_SECONDS=10
 WATCH_SECONDS=10
 CONFIRM_SECONDS=60
+SLEEP_SYNC_IN_PROGRESS=30
+
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
 else
@@ -27,16 +29,22 @@ fi
 if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
+    SYNC_IN_PROGRESS='termux-notification-list | grep "|com.orgzly|4|"'
+    NOTIF_LIST="termux-notification-list"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
 elif [ "$(uname -m)" == "armv7l" ]; then
     AM="true" # Disable command
     NOTIF_CMD="echo"
+    SYNC_IN_PROGRESS='true' # Disable command
+    NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
 else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
+    SYNC_IN_PROGRESS='true' # Disable command
+    NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
 fi
@@ -78,7 +86,10 @@ while true; do
         PULL_RESULT=$(git pull) || check_conflict "$?"
         echo $PULL_RESULT
         if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-            $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+            while ! $SYNC_IN_PROGRESS; do
+                $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
+                $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
+            done
         fi
         STATUS=$(git status -s)
         if [ -n "$STATUS" ]; then
