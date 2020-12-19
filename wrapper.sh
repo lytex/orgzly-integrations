@@ -18,7 +18,7 @@ command -v "$NOTIF_CMD" &>/dev/null || { stderr "Error: Required command '$NOTIF
 test $GIT_SYNC_DIRECTORY && cd $GIT_SYNC_DIRECTORY
 
 while true; do
-    $NOTIF_CMD "git-sync started"
+    $NOTIF_CMD "git-sync_started"
     ./git-sync.sh >> $LOGFILE 2>&1 || $NOTIF_ERROR
-    $NOTIF_CMD "git-sync restarted"
+    $NOTIF_CMD "git-sync_restarted"
 done
