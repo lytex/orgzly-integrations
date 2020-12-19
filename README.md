@@ -20,7 +20,7 @@
 
 # Autostart
 ## termux
-* Run `termux/install.sh`
+* Run `cd termux && install.sh`
 ## KDE
 * Run `kde/install.sh`
 
