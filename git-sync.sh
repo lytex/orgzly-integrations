@@ -14,10 +14,6 @@ is_command() {
 }
 
 SYNC_HOST="lytex_space_git"
-RETRY_SECONDS=10
-WATCH_SECONDS=10
-CONFIRM_SECONDS=60
-SLEEP_SYNC_IN_PROGRESS=3
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
@@ -29,7 +25,12 @@ fi
 if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
+    # id 4 comes from:
+    # https://github.com/orgzly/orgzly-android/blob/master/app/src/main/java/com/orgzly/android/ui/notifications/Notifications.java
     SYNC_IN_PROGRESS='termux-notification-list | grep "|com.orgzly|4|" > /dev/null'
+    # Likewise, id 4 comes from:
+    # https://github.com/syncthing/syncthing-android/blob/master/app/src/main/java/com/nutomic/syncthingandroid/service/NotificationHandler.java
+    SYNCTHING_NOT_RUNNING='termux-notification-list | grep "|com.nutomic.syncthingandroid|4|" > /dev/null'
     NOTIF_LIST="termux-notification-list"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
@@ -82,6 +83,23 @@ echo "$INCOMMAND"
 
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
+        if  eval $SYNCTHING_NOT_RUNNING; then
+            # When syncthing is disabled, we assume the user wants to
+            # save battery
+            echo "Syncthing not running! Going into battery saving mode..."
+            RETRY_SECONDS=300
+            WATCH_SECONDS=300
+            CONFIRM_SECONDS=60
+            SLEEP_SYNC_IN_PROGRESS=3
+        else
+            # When syncthing is enabled, run frequently
+            echo "Syncthing not running! Going into frequent mode..."
+            RETRY_SECONDS=10
+            WATCH_SECONDS=10
+            CONFIRM_SECONDS=60
+            SLEEP_SYNC_IN_PROGRESS=3
+        fi
+
         eval "timeout $WATCH_SECONDS $INCOMMAND" || true
         PULL_RESULT=$(git pull) || check_conflict "$?"
         echo $PULL_RESULT
