@@ -93,7 +93,7 @@ while true; do
             SLEEP_SYNC_IN_PROGRESS=3
         else
             # When syncthing is enabled, run frequently
-            echo "Syncthing not running! Going into frequent mode..."
+            echo "Syncthing is running! Going into frequent mode..."
             RETRY_SECONDS=10
             WATCH_SECONDS=10
             CONFIRM_SECONDS=60
