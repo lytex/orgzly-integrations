@@ -19,8 +19,6 @@
 * Launch wrapper.sh
 
 # Autostart
-## GIT_SYNC_DIRECTORY 
-* Customize `GIT_SYNC_DIRECTORY` in `wrapper.sh`
 ## termux
 * Run `termux/install.sh`
 ## KDE
