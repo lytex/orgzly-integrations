@@ -14,10 +14,6 @@ is_command() {
 }
 
 SYNC_HOST="lytex_space_git"
-RETRY_SECONDS=10
-WATCH_SECONDS=10
-CONFIRM_SECONDS=60
-SLEEP_SYNC_IN_PROGRESS=3
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
@@ -29,7 +25,14 @@ fi
 if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
+    # Detect if there is an orgzly sync in progress
+    # id 4 comes from:
+    # https://github.com/orgzly/orgzly-android/blob/master/app/src/main/java/com/orgzly/android/ui/notifications/Notifications.java
     SYNC_IN_PROGRESS='termux-notification-list | grep "|com.orgzly|4|" > /dev/null'
+    # Detect if syncthing is not running
+    # Likewise, id 4 comes from:
+    # https://github.com/syncthing/syncthing-android/blob/master/app/src/main/java/com/nutomic/syncthingandroid/service/NotificationHandler.java
+    SYNCTHING_NOT_RUNNING='termux-notification-list | grep "|com.nutomic.syncthingandroid|4|" > /dev/null'
     NOTIF_LIST="termux-notification-list"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
@@ -54,6 +57,8 @@ check_conflict() {
         # Either there is a merge conflict or connection has been lost
         # If TIMEOUT_PING works and there are some uncommited files (possibly because of a conflict),
         # then, we assume it's a merge conflict, otherwise, we assume connection has been lost
+        # TODO grep $1 against something like "automerge failed" (see git pull when there is a merge conflict)
+        # Lost of connection may be notified as false conflicts
         eval "$TIMEOUT_PING" && [ -n "(git status -s)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
     fi
 }
@@ -82,6 +87,24 @@ echo "$INCOMMAND"
 
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
+        if  eval $SYNCTHING_NOT_RUNNING; then
+            # When syncthing is disabled, we assume the user wants to
+            # save battery
+            echo "Syncthing not running! Going into battery saving mode..."
+            RETRY_SECONDS=300
+            WATCH_SECONDS=300
+            CONFIRM_SECONDS=60
+            SLEEP_SYNC_IN_PROGRESS=3
+        else
+            # When syncthing is enabled, run frequently
+            echo "Syncthing is running! Going into frequent mode..."
+            RETRY_SECONDS=10
+            WATCH_SECONDS=10
+            CONFIRM_SECONDS=60
+            SLEEP_SYNC_IN_PROGRESS=3
+        fi
+
+        # Wait until there's either a file change or WATCH_SECONDS, whichever is first
         eval "timeout $WATCH_SECONDS $INCOMMAND" || true
         PULL_RESULT=$(git pull) || check_conflict "$?"
         echo $PULL_RESULT
@@ -90,7 +113,7 @@ while true; do
                 # Only sync if there is not a sync in progress
                 $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
             else
-                # Retry each SLEEP_SYNC_IN_PROGRESS seconds
+                # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
                 while eval $SYNC_IN_PROGRESS; do
                     eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
                 done
@@ -100,7 +123,9 @@ while true; do
         fi
         STATUS=$(git status -s)
         if [ -n "$STATUS" ]; then
+            # There are local changes
             echo "$STATUS"
+            # See fix_deletions.py to see why is this necessary
             deleted_status=0
             python3 "$OLD_DIR/fix_deletions.py" || deleted_status=$?
             echo $deleted_status $deleted_files
