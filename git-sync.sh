@@ -29,7 +29,7 @@ fi
 if is_command termux-info; then
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
-    SYNC_IN_PROGRESS='termux-notification-list | grep "|com.orgzly|4|"'
+    SYNC_IN_PROGRESS='termux-notification-list | grep "|com.orgzly|4|" > /dev/null'
     NOTIF_LIST="termux-notification-list"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
@@ -94,6 +94,8 @@ while true; do
                 while eval $SYNC_IN_PROGRESS; do
                     eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
                 done
+                # Finally sync once the previous sync has ended
+                $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
             fi
         fi
         STATUS=$(git status -s)
