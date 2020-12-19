@@ -11,5 +11,13 @@ else
     NOTIF_ERROR="$NOTIF_CMD git-sync ERROR -t 0"
 fi
 
+command -v "$NOTIF_CMD" &>/dev/null || { stderr "Error: Required command '$NOTIF_CMD' not found"; exit 1; }
+
 LOGFILE="$HOME/git-sync.log"
-./git-sync.sh >> $LOGFILE 2>&1 || $NOTIF_ERROR
+source .env
+
+cd $GIT_SYNC_DIRECTORY
+while true;
+    ./git-sync.sh >> $LOGFILE 2>&1 || $NOTIF_ERROR
+    $NOTIF_CMD "git-sync restarted"
+done
