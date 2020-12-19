@@ -17,7 +17,7 @@ SYNC_HOST="lytex_space_git"
 RETRY_SECONDS=10
 WATCH_SECONDS=10
 CONFIRM_SECONDS=60
-SLEEP_SYNC_IN_PROGRESS=30
+SLEEP_SYNC_IN_PROGRESS=3
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
