@@ -86,7 +86,7 @@ while true; do
         PULL_RESULT=$(git pull) || check_conflict "$?"
         echo $PULL_RESULT
         if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-            while ! eval $SYNC_IN_PROGRESS; do
+            while eval $SYNC_IN_PROGRESS; do
                 $AM startservice -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.sync.SyncService
                 eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
             done
