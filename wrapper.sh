@@ -1,7 +1,6 @@
 #!/bin/bash
 
 LOGFILE="$HOME/git-sync.log"
-GIT_SYNC_DIRECTORY="$HOME/code/python/orgzly-integrations" # Modify accordingly
 
 if command -v "termux-info" &>/dev/null ; then
     NOTIF_CMD="termux-notification"
