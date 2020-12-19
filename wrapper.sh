@@ -18,6 +18,7 @@ source .env
 
 cd $GIT_SYNC_DIRECTORY
 while true;
+    $NOTIF_CMD "git-sync started"
     ./git-sync.sh >> $LOGFILE 2>&1 || $NOTIF_ERROR
     $NOTIF_CMD "git-sync restarted"
 done
