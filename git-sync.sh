@@ -40,6 +40,7 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     AM="true" # Disable command
     NOTIF_CMD="echo"
     SYNC_IN_PROGRESS='true' # Disable command
+    SYNCTHING_NOT_RUNNING="true" # Disable command
     NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
@@ -47,6 +48,7 @@ else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
     SYNC_IN_PROGRESS='true' # Disable command
+    SYNCTHING_NOT_RUNNING="true" # Disable command
     NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
