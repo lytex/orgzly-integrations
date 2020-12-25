@@ -117,8 +117,10 @@ while true; do
             if ! eval $SYNC_IN_PROGRESS; then
                 # Only sync if there is not a sync in progress
                 $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+                sleep 1
                 # If there is no notification, notify the user
-                ( ! eval $SYNC_IN_PROGRESS ) &&  $NOTIF_SYNC_SERVICE_FAILED
+                ( ! eval $SYNC_IN_PROGRESS ) &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W && 
+ $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService && $NOTIF_SYNC_SERVICE_FAILED
             else
                 # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
                 while eval $SYNC_IN_PROGRESS; do
@@ -127,7 +129,8 @@ while true; do
                 # Finally sync once the previous sync has ended
                 $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
                 # If there is no notification, notify the user
-                ( ! eval $SYNC_IN_PROGRESS ) &&  $NOTIF_SYNC_SERVICE_FAILED
+                ( ! eval $SYNC_IN_PROGRESS ) &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W && 
+ $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService && $NOTIF_SYNC_SERVICE_FAILEDD
             fi
         fi
         STATUS=$(git status -s)
