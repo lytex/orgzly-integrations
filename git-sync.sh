@@ -115,7 +115,7 @@ while true; do
                 # Only sync if there is not a sync in progress
                 $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
                 # If there is no notification, start orgzly and then sync
-                { ! eval $SYNC_IN_PROGRESS } &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity && $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+                ( ! eval $SYNC_IN_PROGRESS ) &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity && $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
             else
                 # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
                 while eval $SYNC_IN_PROGRESS; do
