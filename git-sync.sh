@@ -72,6 +72,18 @@ check_conflict() {
     fi
 }
 
+launch_orgzly_sync() {
+    # Try to start the SyncService
+    $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+    if ( ! eval $SYNC_IN_PROGRESS ); then
+        # If there is no SYNC_IN_PROGRESS, orgzly must be in the background
+        $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
+        # Start orgzly and then start the SyncService
+        $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+        $NOTIF_SYNC_SERVICE_FAILED
+    fi
+}
+
 git_add_commit_push() {
     git add .
     git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
@@ -120,21 +132,14 @@ while true; do
         if [ "$PULL_RESULT" !=  "Already up to date." ]; then
             if ! eval $SYNC_IN_PROGRESS; then
                 # Only sync if there is not a sync in progress
-                $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
-                sleep 1
-                # If there is no notification, notify the user
-                ( ! eval $SYNC_IN_PROGRESS ) &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W && 
- $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService && $NOTIF_SYNC_SERVICE_FAILED
+                launch_orgzly_sync
             else
                 # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
                 while eval $SYNC_IN_PROGRESS; do
                     eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
                 done
                 # Finally sync once the previous sync has ended
-                $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
-                # If there is no notification, notify the user
-                ( ! eval $SYNC_IN_PROGRESS ) &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W && 
- $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService && $NOTIF_SYNC_SERVICE_FAILED
+                launch_orgzly_sync
             fi
         fi
         STATUS=$(git status -s)
