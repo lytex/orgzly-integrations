@@ -36,6 +36,7 @@ if is_command termux-info; then
     NOTIF_LIST="termux-notification-list"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
+    NOTIF_SYNC_SERVICE_FAILED="$NOTIF_CMD -t git-sync -c start-sync-service-manually --id sync-service --ongoing"
 elif [ "$(uname -m)" == "armv7l" ]; then
     AM="true" # Disable command
     NOTIF_CMD="echo"
@@ -44,6 +45,7 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
+    NOTIF_SYNC_SERVICE_FAILED="true"
 else
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
@@ -52,6 +54,7 @@ else
     NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
+    NOTIF_SYNC_SERVICE_FAILED="true"
 fi
 
 check_conflict() {
@@ -114,8 +117,8 @@ while true; do
             if ! eval $SYNC_IN_PROGRESS; then
                 # Only sync if there is not a sync in progress
                 $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
-                # If there is no notification, start orgzly and then sync
-                ( ! eval $SYNC_IN_PROGRESS ) &&  $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity && $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+                # If there is no notification, notify the user
+                ( ! eval $SYNC_IN_PROGRESS ) &&  $NOTIF_SYNC_SERVICE_FAILED
             else
                 # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
                 while eval $SYNC_IN_PROGRESS; do
@@ -123,6 +126,8 @@ while true; do
                 done
                 # Finally sync once the previous sync has ended
                 $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+                # If there is no notification, notify the user
+                ( ! eval $SYNC_IN_PROGRESS ) &&  $NOTIF_SYNC_SERVICE_FAILED
             fi
         fi
         STATUS=$(git status -s)
