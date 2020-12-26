@@ -19,7 +19,7 @@ update_clock_goto_notification() {
 
     
     termux-notification -t current_clock --id current_clock --ongoing \
-        --button1 goto-clock --button1-action $goto_clocked"
+        --button1 goto-clock --button1-action "$goto_clocked"
 
 
 }
