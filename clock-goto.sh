@@ -24,9 +24,9 @@ update_clock_goto_notification() {
 
 }
 
-INCOMMAND="inotifywait" -qr -e "close_write,move,delete,create" --exclude "\.git" "$ORG_DIRECTORY"
+INCOMMAND=inotifywait -qr -e "close_write,move,delete,create" --exclude "\.git" "$ORG_DIRECTORY"
 
 while true; do
-    eval "timeout $WATCH_SECONDS $INCOMMAND"
+    $INCOMMAND
     update_clock_goto_notification
 done
