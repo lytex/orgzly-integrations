@@ -14,8 +14,8 @@ update_clock_goto_notification() {
 
     current=$(grep -Pr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)')
 
-    goto_clocked=am start -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.ui.main.MainActivity \
-        --es "com.orgzly.intent.extra.QUERY_STRING" "$current" --activity-clear-task
+    goto_clocked="am start -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.ui.main.MainActivity \
+        --es \"com.orgzly.intent.extra.QUERY_STRING\" \"$current\" --activity-clear-task"
 
     
     termux-notification -t current_clock --id current_clock --ongoing \
