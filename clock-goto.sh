@@ -7,7 +7,7 @@ source .env
 update_clock_goto_notification() {
 
     count=$(grep -Pr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' *.org | wc -l)
-    if (($count != 1)); then
+    if (($count > 1)); then
         termux-notification -t "multiple clocks detected! delete unused clocks and restart"
         exit 1
     fi
