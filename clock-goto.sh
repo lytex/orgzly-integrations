@@ -19,7 +19,7 @@ update_clock_goto_notification() {
         --es \"com.orgzly.intent.extra.QUERY_STRING\" \"$current\" --activity-clear-task"
 
     
-    termux-notification -t current_clock --id current_clock --ongoing \
+    termux-notification -t current_clock --id current_clock --ongoing --alert-once \
         --button1 goto-clock --button1-action "$goto_clocked"
 
 
