@@ -29,6 +29,7 @@ INCOMMAND="inotifywait -qr -e close_write,move,delete,create --exclude \"\.git\"
 cd $ORG_DIRECTORY
 
 while true; do
-    $INCOMMAND
+    # inotifywait can exit 1, see man inotifywait -> EXIT STATUS
+    $INCOMMAND || true
     update_clock_goto_notification
 done
