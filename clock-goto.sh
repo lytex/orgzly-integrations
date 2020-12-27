@@ -14,7 +14,7 @@ update_clock_goto_notification() {
     fi
 
     # -h hides the filename
-    current=$(grep -Phr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' **/**.org)
+    current=$(grep -Phr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' **/**.org || echo $current)
 
     goto_clocked="am start -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.ui.main.MainActivity \
         --es \"com.orgzly.intent.extra.QUERY_STRING\" \"$current\" --activity-clear-task"
