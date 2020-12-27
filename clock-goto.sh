@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 set -e
-set +x
+set -x
 
 source .env
 
