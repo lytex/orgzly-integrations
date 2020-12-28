@@ -76,10 +76,10 @@ launch_orgzly_sync() {
     # Try to start the SyncService
     $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
     if ( ! eval $SYNC_IN_PROGRESS ); then
-        # If there is no SYNC_IN_PROGRESS, orgzly must be in the background
-        $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
-        # Start orgzly and then start the SyncService
-        $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+        # # If there is no SYNC_IN_PROGRESS, orgzly must be in the background
+        # $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
+        # # Start orgzly and then start the SyncService
+        # $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
         $NOTIF_SYNC_SERVICE_FAILED
     fi
 }
