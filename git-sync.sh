@@ -23,7 +23,6 @@ fi
 
 
 if is_command termux-info; then
-    # Mobile phone
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
     # Detect if there is an orgzly sync in progress
@@ -37,9 +36,8 @@ if is_command termux-info; then
     NOTIF_LIST="termux-notification-list"
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
-    NOTIF_SYNC_SERVICE_FAILED="$NOTIF_CMD -t start-sync-service-manually"
+    NOTIF_SYNC_SERVICE_FAILED="$NOTIF_CMD -t git-sync -c start-sync-service-manually --id sync-service --ongoing"
 elif [ "$(uname -m)" == "armv7l" ]; then
-    ## RaspberryPi 4
     AM="true" # Disable command
     NOTIF_CMD="echo"
     SYNC_IN_PROGRESS='false' # Disable command
@@ -49,14 +47,12 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
     NOTIF_SYNC_SERVICE_FAILED="true"
 else
-    # Regular Linux
     AM="true" # Disable command
     NOTIF_CMD="notify-send"
     SYNC_IN_PROGRESS='false' # Disable command
     SYNCTHING_NOT_RUNNING="false" # Disable command
     NOTIF_LIST="true" # Disable command
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
-    RETRY_SECONDS=10
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
     NOTIF_SYNC_SERVICE_FAILED="true"
 fi
