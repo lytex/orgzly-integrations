@@ -3,4 +3,3 @@
 termux-notification-remove sync-conflict
 termux-notification-remove lost-connection
 termux-notification-remove error
-termux-notification-remove current_clock
