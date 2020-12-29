@@ -76,6 +76,7 @@ launch_orgzly_sync() {
         # https://stackoverflow.com/questions/60767216/how-to-trigger-a-launch-activity-intent-when-my-app-is-closed-on-android-10-q
         # The while loop will be repeating until termux is no longer in background
         sleep 10
+        $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
         $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
         # $NOTIF_SYNC_SERVICE_FAILED
     done
