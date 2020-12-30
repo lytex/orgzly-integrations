@@ -46,19 +46,6 @@ launch_orgzly_sync() {
     done
 }
 
-orgzly_check_and_sync() {
-    if ! eval $SYNC_IN_PROGRESS; then
-        # Only sync if there is not a sync in progress
-        launch_orgzly_sync
-    else
-        # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
-        while eval $SYNC_IN_PROGRESS; do
-            eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
-        done
-        # Finally sync once the previous sync has ended
-        launch_orgzly_sync
-    fi
-}
 
 git_add_commit_push() {
     git add .
@@ -84,6 +71,19 @@ if is_command termux-info; then
     SYNCTHING_NOT_RUNNING='$NOTIF_LIST | grep "|com.nutomic.syncthingandroid|4|" > /dev/null'
     NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
+    orgzly_check_and_sync() {
+        if ! eval $SYNC_IN_PROGRESS; then
+            # Only sync if there is not a sync in progress
+            launch_orgzly_sync
+        else
+            # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
+            while eval $SYNC_IN_PROGRESS; do
+                eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
+            done
+            # Finally sync once the previous sync has ended
+            launch_orgzly_sync
+        fi
+    }
 elif [ "$(uname -m)" == "armv7l" ]; then
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
@@ -91,8 +91,9 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     NOTIF_CMD="echo"
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
-    unset orgzly_check_and_sync
-    alias orgzly_check_and_sync="true" # Disable command
+    orgzly_check_and_sync () { 
+        true 
+    }
 else
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
@@ -101,8 +102,10 @@ else
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     RETRY_SECONDS=10
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
-    unset orgzly_check_and_sync
-    alias orgzly_check_and_sync="true" # Disable command
+    orgzly_check_and_sync () {
+        true
+        
+    }
 fi
 
 INW="inotifywait";
