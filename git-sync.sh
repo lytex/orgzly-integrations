@@ -91,6 +91,7 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     NOTIF_CMD="echo"
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
+    unset orgzly_check_and_sync
     alias orgzly_check_and_sync="true" # Disable command
 else
     AM="true" # Disable command
@@ -100,6 +101,7 @@ else
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     RETRY_SECONDS=10
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
+    unset orgzly_check_and_sync
     alias orgzly_check_and_sync="true" # Disable command
 fi
 
