@@ -132,11 +132,8 @@ while true; do
                 # Only sync if there is not a sync in progress
                 launch_orgzly_sync
             else
-                # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
-                while eval $SYNC_IN_PROGRESS; do
-                    eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
-                done
-                # Finally sync once the previous sync has ended
+                # If there is a sync, cancel and sync again
+                eval $SYNC_IN_PROGRESS && launch_orgzly_sync
                 launch_orgzly_sync
             fi
         fi
