@@ -2,7 +2,6 @@
 # Modified from https://jakemccrary.com/blog/2020/02/25/auto-syncing-a-git-repository/
 
 set -e
-set -x
 
 source .env # Get ORG_DIRECTORY environment var from one centralized file
 
@@ -92,7 +91,7 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     NOTIF_CMD="echo"
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
-    orgzly_check_and_sync="true" # Disable command
+    alias orgzly_check_and_sync="true" # Disable command
 else
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
@@ -101,7 +100,7 @@ else
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
     RETRY_SECONDS=10
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection -t $(($RETRY_SECONDS*1000))"
-    orgzly_check_and_sync="true" # Disable command
+    alias orgzly_check_and_sync="true" # Disable command
 fi
 
 INW="inotifywait";
