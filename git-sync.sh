@@ -77,11 +77,8 @@ if is_command termux-info; then
             # Only sync if there is not a sync in progress
             launch_orgzly_sync
         else
-            # If there is a sync, retry each SLEEP_SYNC_IN_PROGRESS seconds
-            while eval $SYNC_IN_PROGRESS; do
-                eval $SYNC_IN_PROGRESS && echo "SYNC_IN_PROGRESS detected" && sleep $SLEEP_SYNC_IN_PROGRESS
-            done
-            # Finally sync once the previous sync has ended
+            # Cancel ongoing sync and launch a new sync
+            $AM stopservice -n com.orgzly/com.orgzly.android.sync.SyncService
             launch_orgzly_sync
         fi
     }
@@ -131,14 +128,12 @@ while true; do
             RETRY_SECONDS=300
             WATCH_SECONDS=300
             CONFIRM_SECONDS=60
-            SLEEP_SYNC_IN_PROGRESS=3
         else
             # When syncthing is enabled, run frequently
             echo "Syncthing is running! Going into frequent mode..."
             RETRY_SECONDS=10
             WATCH_SECONDS=10
             CONFIRM_SECONDS=60
-            SLEEP_SYNC_IN_PROGRESS=3
         fi
 
         # Wait until there's either a file change or WATCH_SECONDS, whichever is first
