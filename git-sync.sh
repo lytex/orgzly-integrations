@@ -36,19 +36,14 @@ check_conflict() {
 launch_orgzly_sync() {
     # Try to start the SyncService
     $AM startservice com.orgzly/com.orgzly.android.sync.SyncService
-    sleep 3
-    counter=0
     while ( ! eval $SYNC_IN_PROGRESS ); do
         # Termux cannot start an activity from the background
         # https://stackoverflow.com/questions/60767216/how-to-trigger-a-launch-activity-intent-when-my-app-is-closed-on-android-10-q
         # The while loop will be repeating until termux is no longer in background
-        sleep 10
+        sleep 1
         echo `date +'%Y-%m-%d %H:%M:%S retrying...'`
-        if (( counter > 6)); then
-            $AM start com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
-        fi
+        $AM start com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
         $AM startservice com.orgzly/com.orgzly.android.sync.SyncService
-        counter=$(( $counter+1 ))
     done
 
     echo `date +'%Y-%m-%d %H:%M:%S success!'`  
