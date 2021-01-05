@@ -35,7 +35,7 @@ check_conflict() {
 
 launch_orgzly_sync() {
     # Try to start the SyncService
-    $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+    $AM startservice com.orgzly/com.orgzly.android.sync.SyncService
     sleep 3
     counter=0
     while ( ! eval $SYNC_IN_PROGRESS ); do
@@ -45,9 +45,9 @@ launch_orgzly_sync() {
         sleep 10
         echo `date +'%Y-%m-%d %H:%M:%S retrying...'`
         if (( counter > 6)); then
-            $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
+            $AM start com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
         fi
-        $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
+        $AM startservice com.orgzly/com.orgzly.android.sync.SyncService
         counter=$(( $counter+1 ))
     done
 
