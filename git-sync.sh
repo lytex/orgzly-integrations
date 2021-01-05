@@ -45,7 +45,7 @@ launch_orgzly_sync() {
         sleep 10
         echo `date +'%Y-%m-%d %H:%M:%S retrying...'`
         if (( counter > 6)); then
-            $AM start -a android.intent.action.MAIN -n com.orglzy 
+            $AM start -n com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
         fi
         $AM startservice -n com.orgzly/com.orgzly.android.sync.SyncService
         counter=$(( $counter+1 ))
