@@ -15,7 +15,7 @@ and each 30 minutes (`make_index.py`). I have been using it for some months and 
 
 ORG_DIRECTORY="/home/user/org"
 ORGZLY_FILE_INDEX="/home/user/org/0.org"
-SYNC_HOST="my_ssh_host" # Name of your ssh host defined in ~/.ssh/config
+SYNC_HOST="my_ssh_host" # Name of your ssh host defined in ~/.ssh/config. Used for testing connection
 
 ## wrapper.sh
 This is a wrapper to ensure git-sync is always up
