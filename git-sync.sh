@@ -137,6 +137,7 @@ while true; do
             WATCH_SECONDS=300
             CONFIRM_SECONDS=60
         else
+            # This is the behavior by default on Raspberry Pi and desktop environments
             # When syncthing is enabled, run frequently
             echo "Syncthing is running! Going into frequent mode..."
             RETRY_SECONDS=10

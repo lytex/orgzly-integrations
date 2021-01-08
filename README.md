@@ -17,6 +17,47 @@ ORG_DIRECTORY="/home/user/org"
 ORGZLY_FILE_INDEX="/home/user/org/0.org"
 SYNC_HOST="my_ssh_host" # Name of your ssh host defined in ~/.ssh/config
 
+## wrapper.sh
+This is a wrapper to ensure git-sync is always up
+
+Logs are writen in the LOGFILE specified at the beggining
+
+## git-sync.sh
+This script either detects any changes made to ORG_DIRECTORY through inotifywait and makes an automatic git commit or timeouts, pulls the latest changes from the server and starts listening for changes again.
+
+The script detects on Android whether Syncthing is running or not in Android. In the rest of environments, this behavior is disabled by setting `SYNCTHING_NOT_RUNNING=false`. 
+
+```bash
+RETRY_SECONDS=10 # Interval in seconds to retry after losing connection
+WATCH_SECONDS=10 # Interval in seconds to watch for file changes. After that, the script pulls and starts watching again
+CONFIRM_SECONDS=60 # Interval to confirm a deletion
+```
+
+## Conflict management
+Instead of creating a new branch where there is a merge conflict, the script makes a new commit with the usual conflict markers:
+
+```
+<<<<<<< HEAD
+foo
+=======
+bar
+>>>>>>> 99cf3c72d20760e8a82d79ca7cf9a4e1d5c6f872
+```
+
+Ideally, a conflict notification would be issues each time there is a sync conflict, but currently the conflict notification is triggered by loss of connection for example, so it's not reliable at all.
+
+The best way to check if there's a real merge conflict is to see `~/git-sync.log`
+
+## Avoiding double commits (fix_deletions.py)
+
+Each time a file is modified, orgzly deletes that file and creates a new file with the new contents
+
+If the file has say 1000 lines and you change a line, two commits are created, one removing -1000 lines of that file and one creating 1000 lines including that change.
+
+The script waits `CONFIRM_SECONDS` until there is another change (creation of the new file).
+Since a file deletion can be also a legitimate operation, after `CONFIRM_SECONDS` the deletion is considered "confirmed" and the commit is made.
+
+
 ## link_translation.py
 
 ### Stripping away the directory part of the links (workaround)
@@ -61,12 +102,12 @@ Creates a new .org file (overwriting previously existing journals) with Spanish 
   * Install [termux-setup-storage](https://wiki.termux.com/wiki/Termux-setup-storage) with `pkg update && pkg upgrade && termux-setup-storage`
   * Install [termux-api](https://wiki.termux.com/wiki/Termux:API) with `pkg install termux-api`
   * Install all necessary dependencies `pkg install openssh git inotify-tools python`
-* Clone this repo in your home directory for example: `cd ~ && git clone https://github.com/lytex/orgzly-integrations && cd orgzly-integrations`
+* Clone this repo in your home directory (recommended) for example: `cd ~ && git clone https://github.com/lytex/orgzly-integrations && cd orgzly-integrations`
 * Install the python requirements`pip3 install -r requirements.in || pip3 install -r requirements.txt`
 * Copy .env and edit as needed `cp .env.example .env && nano .env`
 * Clone your repo. For example you can use the ORG_DIRECTORY variable you have just defined (make sure orgzly is empty, otherwise the repository won't be cloned) `source .env && git clone <path to your .org repo> $ORG_DIRECTORY`
 * Install [termux-widgets](https://wiki.termux.com/wiki/Termux:Widget)
-* Run `cd termux && install.sh`
+* Run `cd termux && install.sh`. the scripts inside this folder assume the repo is located at `/data/data/com.termux/files/home/orgzly-integrations/`: change the location if this is not the case
 * Start the `launch_git-sync.sh` from the termux-widget
 
 # Autostart
