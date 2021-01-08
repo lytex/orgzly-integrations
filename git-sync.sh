@@ -13,7 +13,6 @@ is_command() {
     command -v "$1" &>/dev/null
 }
 
-SYNC_HOST="lytex_space_git" # Name of your ssh host
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
@@ -62,6 +61,8 @@ git_add_commit_push() {
 
 
 if is_command termux-info; then
+    # We are on an Android device
+
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
     NOTIF_LIST="termux-notification-list"
@@ -86,6 +87,8 @@ if is_command termux-info; then
         fi
     }
 elif [ "$(uname -m)" == "armv7l" ]; then
+    # We are on a Raspberry Pi 4
+
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
     SYNCTHING_NOT_RUNNING="false" # Disable command
@@ -96,6 +99,8 @@ elif [ "$(uname -m)" == "armv7l" ]; then
         true 
     }
 else
+    # We are on a desktop environment
+
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
     SYNCTHING_NOT_RUNNING="false" # Disable command
