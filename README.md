@@ -3,9 +3,9 @@ This is mostly a set of small tools I built to scratch some itches I have with o
 Some of them work quite OK, but some of them are more flimsy. Tested on Linux only.
 
 * I run some scripts each day at night on a Raspberry Pi (`create_journal.py`, `link_translation.py`)
-and each 30 minutes (`make_index.py`)
-* `git-sync.sh` is meant to be the core of synchronization across all devices, which is itself launched as a service by `wrapper.sh`. Works
-* `clock-goto.sh` is used to create a persistent nofitication which jumps to the currently clocked task on Android
+and each 30 minutes (`make_index.py`). I have been using it for some months and I haven't found any surprise
+* `git-sync.sh` is meant to be the core of synchronization across all devices, which is itself launched as a service by `wrapper.sh`. Works OK, but the notifications are not reliable
+* `clock-goto.sh` is used to create a persistent nofitication which jumps to the currently clocked task on Android. It doesn't work very well and probably will not be necessary in the future
 
 ## Environment variables
 * These are defined at a `.env` in this repo (which is convenintly gitignored). Copy `.env.example` to `.env` to get started
