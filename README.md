@@ -20,10 +20,13 @@ SYNC_HOST="my_ssh_host" # Name of your ssh host defined in ~/.ssh/config
 ## wrapper.sh
 This is a wrapper to ensure git-sync is always up
 
-Logs are writen in the LOGFILE specified at the beggining
+Logs are writen in the `LOGFILE` specified at the beggining of the script.
 
 ## git-sync.sh
-This script either detects any changes made to ORG_DIRECTORY through inotifywait and makes an automatic git commit or timeouts, pulls the latest changes from the server and starts listening for changes again.
+This script either:
+
+1. detects any changes made to `ORG_DIRECTORY` through inotifywait and makes an automatic git commit or
+2. timeouts, pulls the latest changes from the server and starts listening for changes again
 
 The script detects on Android whether Syncthing is running or not in Android. In the rest of environments, this behavior is disabled by setting `SYNCTHING_NOT_RUNNING=false`. 
 
@@ -46,7 +49,7 @@ bar
 
 Ideally, a conflict notification would be issues each time there is a sync conflict, but currently the conflict notification is triggered by loss of connection for example, so it's not reliable at all.
 
-The best way to check if there's a real merge conflict is to see `~/git-sync.log`
+The best way to check if there's a real merge conflict is to see `LOGFILE` (`~/git-sync.log` by default)
 
 ## Avoiding double commits (fix_deletions.py)
 
