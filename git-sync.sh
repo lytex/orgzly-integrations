@@ -13,7 +13,7 @@ is_command() {
     command -v "$1" &>/dev/null
 }
 
-SYNC_HOST="lytex_space_git"
+SYNC_HOST="lytex_space_git" # Name of your ssh host
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
@@ -35,15 +35,16 @@ check_conflict() {
 
 launch_orgzly_sync() {
     # Try to start the SyncService
-    $AM startservice com.orgzly/com.orgzly.android.sync.SyncService
+
+    # Recommended intent: https://github.com/orgzly/orgzly-android/issues/231
+    $AM broadcast -a com.orgzly.intent.action.SYNC_START com.orgzly/com.orgzly.android.ActionReceiver
+    # This should trigger an SYNC_IN_PROGRESS notifications and the while loop below shouldn't be necessary
+
     while ( ! eval $SYNC_IN_PROGRESS ); do
-        # Termux cannot start an activity from the background
-        # https://stackoverflow.com/questions/60767216/how-to-trigger-a-launch-activity-intent-when-my-app-is-closed-on-android-10-q
-        # The while loop will be repeating until termux is no longer in background
         sleep 1
         echo `date +'%Y-%m-%d %H:%M:%S retrying...'`
         $AM start com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
-        $AM startservice com.orgzly/com.orgzly.android.sync.SyncService
+        $AM broadcast -a com.orgzly.intent.action.SYNC_START com.orgzly/com.orgzly.android.ActionReceiver
     done
 
     echo `date +'%Y-%m-%d %H:%M:%S success!'`  
