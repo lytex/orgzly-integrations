@@ -4,6 +4,10 @@ stderr () {
     echo "$1" >&2
 }
 
+echo_date () {
+    echo `date` $1
+}
+
 LOGFILE="$HOME/git-sync.log"
 
 if command -v "termux-info" &>/dev/null ; then
@@ -11,7 +15,7 @@ if command -v "termux-info" &>/dev/null ; then
     NOTIF_ERROR="$NOTIF_CMD -t git-sync -c ERROR --id error --ongoing"
     NOTIF_START="$NOTIF_CMD -t git-sync_started"
 elif [ "$(uname -m)" == "armv7l" ]; then
-    NOTIF_CMD="echo `date`"
+    NOTIF_CMD=echo_date
     NOTIF_ERROR="$NOTIF_CMD git-sync ERROR -t 0"
     NOTIF_START="$NOTIF_CMD git-sync_started"
 else

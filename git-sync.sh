@@ -13,6 +13,10 @@ is_command() {
     command -v "$1" &>/dev/null
 }
 
+echo_date () {
+    echo `date` $1
+}
+
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
@@ -92,7 +96,7 @@ elif [ "$(uname -m)" == "armv7l" ]; then
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
     SYNCTHING_NOT_RUNNING="false" # Disable command
-    NOTIF_CMD="echo"
+    NOTIF_CMD=echo_date
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
     NOTIF_LOST_CONNECTION="$NOTIF_CMD git-sync lost_connection"
     orgzly_check_and_sync () { 
