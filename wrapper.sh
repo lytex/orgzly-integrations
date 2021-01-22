@@ -1,5 +1,9 @@
 #!/bin/bash
 
+stderr () {
+    echo "$1" >&2
+}
+
 LOGFILE="$HOME/git-sync.log"
 
 if command -v "termux-info" &>/dev/null ; then
