@@ -131,6 +131,12 @@ OLD_DIR=$(pwd)
 cd "$ORG_DIRECTORY"
 echo "$INCOMMAND"
 
+# If connection fails at the very first loop, RETRY_SECONDS has to be set
+# Otherwise sleep $RETRY_SECONDS fails
+RETRY_SECONDS=10
+WATCH_SECONDS=10
+CONFIRM_SECONDS=60
+
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
         if  eval $SYNCTHING_NOT_RUNNING; then
