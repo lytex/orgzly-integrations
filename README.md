@@ -11,10 +11,12 @@ and each 30 minutes (`make_index.py`). I have been using it for some months and 
 * These are defined at a `.env` in this repo (which is convenintly gitignored). Copy `.env.example` to `.env` to get started
 * `ORG_DIRECTORY` should be something like `/data/data/com.termux/files/home/storage/shared/orgzly` if orgzly is installed in the Internal Storage or `/home/user/org` in a desktop environment
 * `ORGZLY_FILE_INDEX` (Android only) should be a file inside ORG_DIRECTORY (I choose 0.org since orgzly notebooks are sorted alphanumerically so that it will be always at the top) `/data/data/com.termux/files/home/storage/shared/orgzly/0.org` in this case
+* ORGZLY_CUSTOM_ID_FILE="home/user/org/1custom_id.org" (optional) Path to write all your custom_ids scattered across all your .org files. The idea is to centralize all custom_ids so that linking in orgzly is a little more convinient
 * `SYNC_HOST` is the name of your ssh host, defined in `~/.ssh/config`
 
 ORG_DIRECTORY="/home/user/org"
 ORGZLY_FILE_INDEX="/home/user/org/0.org"
+ORGZLY_CUSTOM_ID_FILE="home/user/org/1custom_id.org"
 SYNC_HOST="my_ssh_host" # Name of your ssh host defined in ~/.ssh/config. Used for testing connection
 
 ## wrapper.sh
