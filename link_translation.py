@@ -11,6 +11,7 @@ from orgparse.node import OrgBaseNode
 load_dotenv()
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
+ORGZLY_CUSTOM_ID_FILE = os.getenv("ORGZLY_CUSTOM_ID_FILE")
 
 # Global variables specifying what whe mean when we say directorypath, orgfile, linkname, ...
 # ext4 allows every character except / and NULL to be part of a directory or filename
@@ -126,6 +127,11 @@ for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
     for item in custom_id:
         uuid = item.properties.get("ID", str(uuid4()))  # Create id if not exists only
         custom_to_id.update({item.properties["custom_id"]: uuid})
+
+    if ORGZLY_CUSTOM_ID_FILE is not None:
+        with open(ORGZLY_CUSTOM_ID_FILE, "w") as f:
+            for custom_id, regular_id in custom_to_id.items():
+                f.write(f"* [[id:{regular_id}][{custom_id}]]\n")
 
     result = str(root[0]) + "\n" + "\n".join([add_orgzly_flat_links(add_id(x)) for x in root[1:]])
 
