@@ -7,14 +7,14 @@ source .env
 
 update_clock_goto_notification() {
 
-    count=$(grep -Pr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' **/**.org | wc -l)
+    count=$(grep -Pr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' **.org **/**.org | wc -l)
     if (($count > 1)); then
         termux-notification -t "multiple clocks detected! delete unused clocks and restart"
         exit 1
     fi
 
     # -h hides the filename
-    current=$(grep -Phr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' **/**.org || echo $current)
+    current=$(grep -Phr 'CLOCK:[ ]+\[[0-9]{4}-[0-9]{2}-[0-9]{2} [^\[\]]{2,4} [0-9]{2}:[0-9]{2}\](?!--)' **.org **/**.org || echo $current)
 
     goto_clocked="am start -a android.intent.action.MAIN -n com.orgzly/com.orgzly.android.ui.main.MainActivity \
         --es \"com.orgzly.intent.extra.QUERY_STRING\" \"$current\" --activity-clear-task"
