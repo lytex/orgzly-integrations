@@ -12,6 +12,7 @@ load_dotenv()
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 ORGZLY_CUSTOM_ID_FILE = os.getenv("ORGZLY_CUSTOM_ID_FILE")
+LINK_TYPE = os.getenv("LINK_TYPE")
 
 # Global variables specifying what whe mean when we say directorypath, orgfile, linkname, ...
 # ext4 allows every character except / and NULL to be part of a directory or filename
@@ -49,6 +50,8 @@ def get_children(parent: OrgBaseNode) -> Iterable[OrgBaseNode]:
 
 # This dictionary maps each custom_id to their id (either existent id or newly generated id)
 custom_to_id = {}
+# This dictionary maps each file to the id of the first headline (either existent id or newly generated id)
+file_to_first_id = {}
 
 
 def add_id(node: OrgBaseNode) -> str:
@@ -66,7 +69,7 @@ def add_id(node: OrgBaseNode) -> str:
         return str(node)
 
 
-def substitute_customid_links(content: str) -> str:
+def substitute_customid_links(content: str, custom: str, uuid: str) -> str:
     # Substitute simple links [[#link]]
     content = re.sub(r"\[\[#" + custom + r"\]\]", f"[[id:{uuid}][{custom}]]", content)
 
@@ -117,39 +120,85 @@ def add_orgzly_flat_links(content: str) -> str:
     return content
 
 
-# First pass, create ID if not exists for each heading with custom_id
-for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
-    with open(path, "r") as f:
-        root = loads(f.read())
+def clean_flat_links(content: str) -> str:
 
-    custom_id = recursive_filter(lambda x: x.properties.get("custom_id") is not None, get_children(root))
+    content = re.sub(
+        r"\[\[file:("
+        + directorypath_regex
+        + r")("
+        + orgfile_regex
+        + r")\]((:?\["
+        + linkname_regex
+        + r"\])?)\]"
+        + r"( \[\[file:\3\]\4\])",
+        r"[[file:\1\3]\4]",
+        content,
+    )
 
-    for item in custom_id:
-        uuid = item.properties.get("ID", str(uuid4()))  # Create id if not exists only
-        custom_to_id.update({item.properties["custom_id"]: uuid})
+    return content
 
-    if ORGZLY_CUSTOM_ID_FILE is not None:
-        with open(ORGZLY_CUSTOM_ID_FILE, "w") as f:
-            for custom_id, regular_id in custom_to_id.items():
-                f.write(f"* [[id:{regular_id}][{custom_id}]]\n")
 
-    result = str(root[0]) + "\n" + "\n".join([add_orgzly_flat_links(add_id(x)) for x in root[1:]])
+def main():
+    # First pass, create ID if not exists for each heading with custom_id
+    for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
+        with open(path, "r") as f:
+            root = loads(f.read())
 
-    with open(path, "w") as f:
-        # Overwrite content
-        f.seek(0)
-        f.write(result)
+            if LINK_TYPE == "id" or LINK_TYPE == "id_clean":
+                if len(root.children) > 0:
+                    first_hl = root.children[0]
+                    uuid = first_hl.properties.get("ID", str(uuid4()))  # Create id if not exists only
+                else:
+                    uuid = None
+                relative_path = path.split(ORG_DIRECTORY + "/" * (not ORG_DIRECTORY.endswith("/")))[-1]
+                file_to_first_id.update({relative_path: uuid})
 
-# Second pass, substitute links with the custom_to_id mapping
-for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
+        custom_id = recursive_filter(lambda x: x.properties.get("custom_id") is not None, get_children(root))
 
-    with open(path, "r") as f:
-        content = f.read()
+        for item in custom_id:
+            uuid = item.properties.get("ID", str(uuid4()))  # Create id if not exists only
+            custom_to_id.update({item.properties["custom_id"]: uuid})
 
-    for custom, uuid in custom_to_id.items():
-        content = substitute_customid_links(content)  # TODO Try to do it node by node, seems faster
+        if ORGZLY_CUSTOM_ID_FILE is not None:
+            with open(ORGZLY_CUSTOM_ID_FILE, "w") as f:
+                for custom_id, regular_id in custom_to_id.items():
+                    f.write(f"* [[id:{regular_id}][{custom_id}]]\n")
 
-    with open(path, "w") as f:
-        # Overwrite content
-        f.seek(0)
-        f.write(content)
+        if LINK_TYPE == "flattened_file":
+            result = str(root[0]) + "\n" + "\n".join([add_orgzly_flat_links(add_id(x)) for x in root[1:]])
+        elif LINK_TYPE == "id_clean":
+            result = str(root[0]) + "\n" + "\n".join([clean_flat_links(str(x)) for x in root[1:]])
+        elif LINK_TYPE == "id":
+            pass
+
+        with open(path, "w") as f:
+            # Overwrite content
+            f.seek(0)
+            f.write(result)
+
+    # Second pass, substitute links with the custom_to_id mapping
+    for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
+
+        with open(path, "r") as f:
+            content = f.read()
+
+        for custom, uuid in custom_to_id.items():
+            content = substitute_customid_links(content, custom, uuid)  # TODO Try to do it node by node, seems faster
+
+        with open(path, "w") as f:
+            # Overwrite content
+            f.seek(0)
+            f.write(content)
+
+    # fmt: off
+    # Get first element (dict key) of all elements whose entry (dict value) is None 
+    files_without_headline = list(map(lambda x: x[0],
+                                      filter(lambda x: x[1] is None,
+                                             file_to_first_id.items())))
+    # fmt: on
+    print("The followings files do not have headline:\n")
+    [print(file) for file in files_without_headline]
+
+
+if __name__ == "__main__":
+    main()
