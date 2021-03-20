@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Modified from https://jakemccrary.com/blog/2020/02/25/auto-syncing-a-git-repository/
 
 set -e
