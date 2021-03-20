@@ -29,6 +29,8 @@ command -v "$NOTIF_CMD" &>/dev/null || { stderr "Error: Required command '$NOTIF
 test $GIT_SYNC_DIRECTORY && cd $GIT_SYNC_DIRECTORY
 
 while true; do
-    $NOTIF_START
-    ./git-sync.sh >> $LOGFILE 2>&1 || $NOTIF_ERROR
+    # Sometimes notifications take some time (minutes) when restarting the phone
+    # To avoid blocking git-sync, spawn a new process
+    $NOTIF_START &
+    ./git-sync.sh >> $LOGFILE 2>&1 || ($NOTIF_ERROR &)
 done
