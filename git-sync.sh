@@ -140,21 +140,6 @@ CONFIRM_SECONDS=60
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
         if  eval $SYNCTHING_NOT_RUNNING; then
-            # When syncthing is disabled, we assume the user wants to
-            # save battery
-            echo "Syncthing not running! Going into battery saving mode..."
-            RETRY_SECONDS=300
-            WATCH_SECONDS=300
-            CONFIRM_SECONDS=60
-        else
-            # This is the behavior by default on Raspberry Pi and desktop environments
-            # When syncthing is enabled, run frequently
-            echo "Syncthing is running! Going into frequent mode..."
-            RETRY_SECONDS=10
-            WATCH_SECONDS=10
-            CONFIRM_SECONDS=60
-        fi
-
         # Wait until there's either a file change or WATCH_SECONDS, whichever is first
         eval "timeout $WATCH_SECONDS $INCOMMAND" || true
         PULL_RESULT=$(git pull) || check_conflict "$?"
