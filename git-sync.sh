@@ -139,7 +139,6 @@ CONFIRM_SECONDS=60
 
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
-        if  eval $SYNCTHING_NOT_RUNNING; then
         # Wait until there's either a file change or WATCH_SECONDS, whichever is first
         eval "timeout $WATCH_SECONDS $INCOMMAND" || true
         PULL_RESULT=$(git pull) || check_conflict "$?"
