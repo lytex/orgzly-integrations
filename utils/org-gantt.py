@@ -47,5 +47,5 @@ for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
     with open(path, "r") as f:
         root = loads(f.read())
         clocked = recursive_filter(lambda x: x.clock, get_children(root))
-        for item in cloked:
+        for item in clocked:
             clocked_info.append({'id': id(item), 'heading': item.heading, 'clock': item.clock})
