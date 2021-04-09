@@ -7,7 +7,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from orgparse import loads
 from orgparse.node import OrgBaseNode
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -70,14 +70,6 @@ df = pd.DataFrame(clocked_info)
 df = df.groupby("id").max().reset_index()  # Headings are duplicated, deduplicate
 
 
-max_date = df.clock.apply(lambda x: max(map(lambda x: x.end, sorted(x, key=lambda x: x.end)))).max()
-min_date = df.clock.apply(lambda x: min(map(lambda x: x.start, sorted(x, key=lambda x: x.start)))).min()
-total_days = (max_date - min_date).days + 1
-
-# 24h equals 100
-width = 200 * total_days
-height = 100
-
 from orgparse.date import OrgDateClock
 
 # Split intervals by day
@@ -95,11 +87,46 @@ def split_by_day(clocklist: Iterable[OrgDateClock]) -> Iterable[OrgDateClock]:
                 ]
             else:
                 raise NotImplementedError(f"Clocks spanning several days are not supported:\n{clock}")
+    return result
 
 
 df.clock = df.clock.apply(split_by_day)
 
+
+max_date = df.clock.apply(lambda x: max(map(lambda x: x.end, sorted(x, key=lambda x: x.end)))).max()
+max_date_start = (max_date + timedelta(days=1)).replace(hour=0, minute=0)
+min_date = df.clock.apply(lambda x: min(map(lambda x: x.start, sorted(x, key=lambda x: x.start)))).min()
+min_date_start = min_date.replace(hour=0, minute=0)
+total_days = (max_date - min_date).days + 1
+
+# 24h equals 100
+width = 200 * total_days
+height = 100
+
 d = draw.Drawing(width, height, origin=(0, 0), displayInline=False)
+
+# fecha = día + hora
+# posición = (día*100, hora*/24*100, 90, duracion_horas/24*100)
+
+a = []
+
+for _, row in df.iterrows():
+    for clock in row.clock:
+        x = (clock.start - min_date_start).days * 100
+        y = (clock.start - clock.start.replace(hour=0, minute=0)).total_seconds() / 3600 / 24 * 100
+        y_length = clock.duration.total_seconds() / 3600 / 24 * 100
+        a.append(y_length)
+        r = draw.Rectangle(
+            x,
+            y,
+            90,
+            y_length,
+            fill=row.color,
+        )
+        r.appendTitle(f"{row.heading}\n{clock.start}--{clock.end}→{clock.duration}")
+        d.append(r)
+        d.append(draw.Text(row.heading, 1 + 0.01 * y_length, x, y))
+
 
 r = draw.Rectangle(-80, 0, 40, 50, fill="#1248ff")
 r.appendTitle("Our first rectangle")  # Add a tooltip
@@ -108,3 +135,5 @@ d.append(r)
 d.setPixelScale(2)  # Set number of pixels per geometry unit
 # d.setRenderSize(400,200)  # Alternative to setPixelScale
 d.saveSvg("example.svg")
+
+a = pd.DataFrame(a)
