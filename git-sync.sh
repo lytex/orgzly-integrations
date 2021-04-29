@@ -32,7 +32,7 @@ check_conflict() {
         # then, we assume it's a merge conflict, otherwise, we assume connection has been lost
         # TODO grep $1 against something like "automerge failed" (see git pull when there is a merge conflict)
         # Lost of connection may be notified as false conflicts
-        eval "$TIMEOUT_PING" && [ -n "(git status -s)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+        eval "$TIMEOUT_PING" && [ -n "$(git status -s)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
     fi
 }
 
