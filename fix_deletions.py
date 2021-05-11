@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # Detects if a file has been deleted and is the change is uncommitted
 # When performing a sync, orgzly first deletes a file and then creates a new file
 # To avoid double commits (one deletion and one insertion) we have to detect this situation
