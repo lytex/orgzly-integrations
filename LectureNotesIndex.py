@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 
 def ls(path: str):
     files_and_dirs = os.listdir(path)
-    files_and_dirs = [path + "/" + x for x in files_and_dirs]
+    files_and_dirs = [os.path.join(path, x) for x in files_and_dirs]
     dirs, files = list(filter(isdir, files_and_dirs)), list(filter(lambda x: isfile(x), files_and_dirs))
-    dirs = [x.replace(path + "/", "") for x in dirs]
-    files = [x.replace(path + "/", "") for x in files]
+    dirs = [x.replace(os.path.join(path + ""), "") for x in dirs]
+    files = [x.replace(os.path.join(path, ""), "") for x in files]
     yield path, dirs, files
 
 
