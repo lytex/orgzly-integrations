@@ -2,3 +2,5 @@ orgparse
 python-dotenv
 gitpython
 pytz
+fastapi
+uvicorn
