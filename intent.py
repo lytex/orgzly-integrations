@@ -1,20 +1,19 @@
-import datetime
 import shlex
 import subprocess
+from urllib.parse import unquote
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+
+from fastapi import FastAPI
 
 app = FastAPI()
 app.state.cached_resolutions = []
 
 
-@app.get("/{command}")
-def read_root(request: Request):
+@app.get("/am")
+def read_root(cmd):
 
-    command = request.path_params.get("command")
-    command = shlex.quote(command)  # Escape all shell characters to avoid shell injection
-    command = "am " + command
+    cmd = unquote(cmd)
+    cmd = shlex.quote(cmd)  # Escape all shell characters to avoid shell injection
+    cmd = "am " + cmd
 
-    subprocess.check_output(command, shell=True)
-
+    subprocess.check_output(cmd, shell=True)
