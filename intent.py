@@ -14,6 +14,7 @@ def read_root(cmd):
 
     cmd = unquote(cmd)
     cmd = shlex.quote(cmd)  # Escape all shell characters to avoid shell injection
+    cmd = cmd[1:-1]  # Remove final and end quote
     cmd = "am " + cmd
 
     subprocess.check_output(cmd, shell=True)
