@@ -19,7 +19,6 @@ def lowercase(s: str):
 
 
 def build_index(path: str, level: int) -> Iterable[str]:
-    print(path)
     path = list(ls(path))
     # print(path)
 
@@ -33,13 +32,14 @@ def build_index(path: str, level: int) -> Iterable[str]:
         for file in files:
             if file.endswith(".png") and file.startswith("page"):
                 link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
-                yield "*" * (level + 1) + f" {file}\n[[file:{link}]]"
+                yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]"
 
 
 load_dotenv()
 
 LECTURE_NOTES_DIRECTORY = os.getenv("LECTURE_NOTES_DIRECTORY")
 LECTURE_NOTES_ORG_FILE_INDEX = os.getenv("LECTURE_NOTES_ORG_FILE_INDEX")
+LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
 os.chdir(LECTURE_NOTES_DIRECTORY)
 
 
