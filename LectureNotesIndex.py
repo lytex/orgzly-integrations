@@ -1,8 +1,13 @@
 import os
 from os.path import isdir, isfile
+import re
 from typing import Iterable
 
 from dotenv import load_dotenv
+
+intent_uri = (
+    "http://127.0.0.1:8000/am?cmd=start%%20-a%%20android.intent.action.VIEW%%20-d%%20%%22lecturenotes://{path}%%22"
+)
 
 
 def ls(path: str):
@@ -32,7 +37,10 @@ def build_index(path: str, level: int) -> Iterable[str]:
         for file in files:
             if file.endswith(".png") and file.startswith("page"):
                 link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
-                yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]"
+                uri = re.sub(r"page([0-9]+).png", r"\1/", link)
+                notebook = intent_uri.format(path=uri)
+
+                yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
 
 
 load_dotenv()
@@ -45,4 +53,7 @@ os.chdir(LECTURE_NOTES_DIRECTORY)
 
 with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
 
-    print("#+STARTUP: inlineimages\n" + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)), file=f)
+    print(
+        "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n" + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
+        file=f,
+    )
