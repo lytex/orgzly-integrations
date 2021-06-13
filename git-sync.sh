@@ -78,8 +78,8 @@ if is_command termux-info; then
     # Likewise, id 4 comes from:
     # https://github.com/syncthing/syncthing-android/blob/master/app/src/main/java/com/nutomic/syncthingandroid/service/NotificationHandler.java
     SYNCTHING_NOT_RUNNING='$NOTIF_LIST | grep "|com.nutomic.syncthingandroid|4|" > /dev/null'
-    NOTIF_CONFLICT="$NOTIF_CMD -t git-sync -c conflict --id sync-conflict --ongoing"
-    NOTIF_LOST_CONNECTION="$NOTIF_CMD -t git-sync -c lost_connection --id lost-connection --ongoing"
+    NOTIF_CONFLICT="$NOTIF_CMD --alert-once -t git-sync -c conflict --id sync-conflict --ongoing"
+    NOTIF_LOST_CONNECTION="$NOTIF_CMD --alert-once -t git-sync -c lost_connection --id lost-connection --ongoing"
     orgzly_check_and_sync() {
         if ! eval $SYNC_IN_PROGRESS; then
             # Only sync if there is not a sync in progress
