@@ -67,6 +67,7 @@ git_add_commit_push() {
 if is_command termux-info; then
     # We are on an Android device
 
+    termux-wake-lock # Do not kill this shell
     AM="am" # termux activity manager
     NOTIF_CMD="termux-notification"
     NOTIF_LIST="termux-notification-list"
