@@ -53,14 +53,39 @@ launch_orgzly_sync() {
     echo `date +'%Y-%m-%d %H:%M:%S success!'`  
 }
 
-
-git_add_commit_push() {
+git_add_commit() {
     git add .
     git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
     # TODO commit only once, get --name-only information from another source
     git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
-    git push || git pull && git push
-    check_conflict "$?"
+}
+
+git_push() {
+    git push || ( ( git pull || check_conflict "$?" ) && git_add_commit && git push ) || \
+        check_conflict "$?"
+}
+
+git-sync-polling() {
+    while true; do
+        # if there are new commits, start the process
+        if [ -n "$(git fetch 2>&1)" ]; then
+            echo "New commits" >> "$LOGFILE"
+            while eval $SYNC_IN_PROGRESS; do
+                sleep $SYNC_WAIT_SECONDS
+            done
+            # add commit always, even if there is nothing new
+            # thus, you can git pull without failing
+            # merge conflicts may be generated, but the command executes cleanly
+            git_add_commit
+            PULL_RESULT=$(git pull) || check_conflict "$?"
+            echo $PULL_RESULT >> "$LOGFILE"
+            if [ "$PULL_RESULT" !=  "Already up to date." ]; then
+                ## This code is skipped unless we are in an Android device
+                orgzly_check_and_sync
+            fi
+        fi
+        sleep $POLLING_SECONDS
+    done
 }
 
 
@@ -135,8 +160,11 @@ echo "$INCOMMAND"
 # If connection fails at the very first loop, RETRY_SECONDS has to be set
 # Otherwise sleep $RETRY_SECONDS fails
 RETRY_SECONDS=10
-WATCH_SECONDS=10
+POLLING_SECONDS=10
+SYNC_WAIT_SECONDS=10
 CONFIRM_SECONDS=60
+
+git-sync-polling &
 
 while true; do
     while eval "$TIMEOUT_PING"; do # Ensure connectivity
@@ -145,42 +173,23 @@ while true; do
             # save battery
             echo "Syncthing not running! Going into battery saving mode..."
             RETRY_SECONDS=300
-            WATCH_SECONDS=300
+            POLLING_SECONDS=300
+            SYNC_WAIT_SECONDS=60
             CONFIRM_SECONDS=60
         else
             # This is the behavior by default on Raspberry Pi and desktop environments
             # When syncthing is enabled, run frequently
             echo "Syncthing is running! Going into frequent mode..."
             RETRY_SECONDS=10
-            WATCH_SECONDS=10
+            POLLING_SECONDS=10
+            SYNC_WAIT_SECONDS=10
             CONFIRM_SECONDS=60
         fi
 
-        # Wait until there's either a file change or WATCH_SECONDS, whichever is first
-        eval "timeout $WATCH_SECONDS $INCOMMAND" || true
-        PULL_RESULT=$(git pull) || check_conflict "$?"
-        echo $PULL_RESULT
-        if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-            ## This code is skipped unless we are in an Android device
-            orgzly_check_and_sync
-        fi
-        STATUS=$(git status -s)
-        if [ -n "$STATUS" ]; then
-            # There are local changes
-            echo "$STATUS"
-            # See fix_deletions.py to see why is this necessary
-            deleted_status=0
-            python3 "$OLD_DIR/fix_deletions.py" || deleted_status=$?
-            echo $deleted_status $deleted_files
-            if (($deleted_status == 0)); then
-                echo "commit!"
-                git_add_commit_push
-            else
-                echo "file deleted! waiting $CONFIRM_SECONDS or until creation of new file"
-                eval "timeout $CONFIRM_SECONDS $INNEWFILE" || true
-                git_add_commit_push
-            fi
-        fi
+        # Wait until there's a file change
+        eval "$INCOMMAND" || true
+        git_add_commit
+        git_push
     done
     $NOTIF_LOST_CONNECTION
     sleep $RETRY_SECONDS
