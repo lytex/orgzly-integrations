@@ -2,3 +2,4 @@
 
 killall wrapper.sh
 killall git-sync.sh
+termux-wake-unlock
