@@ -60,6 +60,14 @@ launch_orgzly_sync() {
     # echo `date +'%Y-%m-%d %H:%M:%S success!'`  
 }
 
+wait_for_connection () {
+    # Loop until there is connectivity
+    while ! eval "$TIMEOUT_PING"; do
+        $NOTIF_LOST_CONNECTION
+        sleep $SYNC_WAIT_SECONDS
+    done
+}
+
 git_add_commit() {
     # To avoid weird commits where files are missing because orgzly is in the middle of a Sync,
     # add_commit only when this Sync has finished
@@ -72,6 +80,24 @@ git_add_commit() {
     git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
 }
 
+git_pull() {
+
+    PULL_CODE=0 # Establish default value, only replace if its different from 0
+    PULL_RESULT=$(git pull) || PULL_CODE=${PULL_CODE:-$(check_conflict "$?")}
+    echo $PULL_RESULT >> "$LOGFILE"
+    if [ "$PULL_RESULT" !=  "Already up to date." ]; then
+        ## This code is skipped unless we are in an Android device
+        orgzly_check_and_sync
+    fi
+}
+
+git_push () {
+
+    PUSH_CODE=0 # Establish default value, only replace if its different from 0
+    PUSH_RESULT=$(git push) || PUSH_CODE=${PUSH_CODE:-$(check_conflict "$?")}
+    echo $PUSH_RESULT >> "$LOGFILE"
+}
+
 git-sync-polling() {
     while true; do
         # if there are new commits, start the process
@@ -81,32 +107,20 @@ git-sync-polling() {
             # thus, you can git pull without failing
             # merge conflicts may be generated, but the command executes cleanly
             git_add_commit
-            PULL_CODE=0 # Establish default value, only replace if its different from 0
-            PULL_RESULT=$(git pull) || PULL_CODE=${PULL_CODE:-$(check_conflict "$?")}
-            echo $PULL_RESULT >> "$LOGFILE"
-            if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-                ## This code is skipped unless we are in an Android device
-                orgzly_check_and_sync
-            fi
+            git_pull
             if (( $PULL_CODE == 0 )); then
                 continue
             else
-                # Loop until there is connectivity
-                while ! eval "$TIMEOUT_PING"; do
-                    PULL_CODE=0 # Establish default value, only replace if its different from 0
-                    PULL_RESULT=$(git pull) || PULL_CODE=${PULL_CODE:-$(check_conflict "$?")}
-                    echo $PULL_RESULT >> "$LOGFILE"
-                    if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-                        ## This code is skipped unless we are in an Android device
-                        orgzly_check_and_sync
-                    fi
-                done
+                wait_for_connection
+                git_pull
             fi
             git_add_commit # In case there is a merge conflict
         fi
         sleep $POLLING_SECONDS
     done
 }
+
+
 
 
 if is_command termux-info; then
@@ -210,16 +224,18 @@ while true; do
         # Wait until there's a file change
         eval "$INCOMMAND" || true
         git_add_commit
-        PUSH_CODE=0 # Establish default value, only replace if its different from 0
-        PUSH_RESULT=$(git push) || PUSH_CODE=${PUSH_CODE:-$(check_conflict "$?")}
+        git_push
         if (( $PUSH_CODE == 0 )); then
             continue
         else
-        PULL_CODE=0 # Establish default value, only replace if its different from 0
-        PULL_RESULT=$(git pull) || PULL_CODE=${PULL_CODE:-$(check_conflict "$?")}
-        echo $PULL_RESULT >> "$LOGFILE"
+            git_pull
+            if (( $PULL_CODE == 0 )); then
+                continue
+            else
+                wait_for_connection
+                git_pull
+            fi
         fi
-
     done
     $NOTIF_LOST_CONNECTION
     sleep $RETRY_SECONDS
