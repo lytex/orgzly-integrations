@@ -82,7 +82,7 @@ git_add_commit() {
     git add .
     # git commit  fails if the repo it's not up to date
     # Add a || true so that always returns zero and the script doesn't exit
-    user_date=$(git config user.name`@`date +'%Y-%m-%d %H:%M:%S')
+    user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
     changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
     git commit -m "autocommit $user_date $changed_files" || true
 }
