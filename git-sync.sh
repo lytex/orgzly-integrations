@@ -21,6 +21,7 @@ declare -i PUSH_CODE
 declare PUSH_RESULT
 declare -i PULL_CODE
 declare PULL_RESULT
+MAX_RETRY_CONNECTION=5 # Number of times to retry connection
 
 
 if [ "$(uname -m)" == "armv7l" ]; then
@@ -61,10 +62,12 @@ launch_orgzly_sync() {
 }
 
 wait_for_connection () {
-    # Loop until there is connectivity
-    while ! eval "$TIMEOUT_PING"; do
+    # Loop until there is connectivity, or try == $MAX_RETRY_CONNECTION
+    try=0
+    while (! eval "$TIMEOUT_PING") & (($try < $MAX_RETRY_CONNECTION)); do
         $NOTIF_LOST_CONNECTION
         sleep $SYNC_WAIT_SECONDS
+        $((try++))
     done
 }
 
@@ -203,7 +206,6 @@ echo "$INCOMMAND"
 RETRY_SECONDS=10
 POLLING_SECONDS=10
 SYNC_WAIT_SECONDS=10
-CONFIRM_SECONDS=60
 
 echo "Starting git-sync-polling" >> "$LOGFILE"
 git-sync-polling &
@@ -217,7 +219,6 @@ while true; do
             RETRY_SECONDS=300
             POLLING_SECONDS=300
             SYNC_WAIT_SECONDS=60
-            CONFIRM_SECONDS=60
         else
             # This is the behavior by default on Raspberry Pi and desktop environments
             # When syncthing is enabled, run frequently
@@ -225,7 +226,6 @@ while true; do
             RETRY_SECONDS=10
             POLLING_SECONDS=10
             SYNC_WAIT_SECONDS=10
-            CONFIRM_SECONDS=60
         fi
 
         # Wait until there's a file change
@@ -235,6 +235,8 @@ while true; do
         if (( $PUSH_CODE == 0 )); then
             continue
         else
+            wait_for_connection
+            git_push
             git_pull
             if (( $PULL_CODE == 0 )); then
                 continue
