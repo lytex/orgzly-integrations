@@ -243,6 +243,7 @@ while true; do
             else
                 wait_for_connection
                 git_pull
+                git push
             fi
         fi
     done
