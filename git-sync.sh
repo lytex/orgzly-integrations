@@ -126,6 +126,9 @@ git-sync-polling() {
                 fi
                 git_add_commit # In case there is a merge conflict
             fi
+            # Redundant add/commit, sometimes it's necessary even though it shouldn't:
+            git_add_commit
+            git_push
             sleep $POLLING_SECONDS
         done
     $NOTIF_LOST_CONNECTION
