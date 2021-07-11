@@ -109,24 +109,28 @@ git_push () {
 
 git-sync-polling() {
     while true; do
-        # if there are new commits, start the process
-        if [ -n "$(git fetch 2>&1)" ]; then
-            echo "New commits" >> "$LOGFILE"
-            # add commit always, even if there is nothing new
-            # thus, you can git pull without failing
-            # merge conflicts may be generated, but the command executes cleanly
-            git_add_commit
-            git_pull
-            if (( $PULL_CODE == 0 )); then
-                continue
-            else
-                wait_for_connection
+        while eval "$TIMEOUT_PING"; do # Ensure connectivity
+            # if there are new commits, start the process
+            if [ -n "$(git fetch 2>&1)" ]; then
+                echo "New commits" >> "$LOGFILE"
+                # add commit always, even if there is nothing new
+                # thus, you can git pull without failing
+                # merge conflicts may be generated, but the command executes cleanly
+                git_add_commit
                 git_pull
+                if (( $PULL_CODE == 0 )); then
+                    continue
+                else
+                    wait_for_connection
+                    git_pull
+                fi
+                git_add_commit # In case there is a merge conflict
             fi
-            git_add_commit # In case there is a merge conflict
-        fi
-        sleep $POLLING_SECONDS
-    done
+            sleep $POLLING_SECONDS
+        done
+    $NOTIF_LOST_CONNECTION
+    sleep $RETRY_SECONDS
+done 
 }
 
 
