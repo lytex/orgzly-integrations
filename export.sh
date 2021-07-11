@@ -8,7 +8,7 @@ while true; do
     files=$(eval $INCOMMAND | grep -i *.org)
     echo $files
     for file in "$files"; do
-        echo emacs --script "$HOME/.doom.d/config.el" --eval="(progn (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
-        emacs --script "$HOME/.doom.d/config.el" --eval="(progn (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
+        echo emacs --script "$HOME/.emacs.d/early-init.el" --script "$HOME/.emacs.d/init.el" --eval="(progn (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
+        emacs --script "$HOME/.emacs.d/early-init.el" --script "$HOME/.emacs.d/init.el" --eval="(progn (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
     done
 done
