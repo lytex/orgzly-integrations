@@ -73,16 +73,21 @@ git_add_commit() {
     # add_commit only when this Sync has finished
     while eval $SYNC_IN_PROGRESS; do
         sleep $SYNC_WAIT_SECONDS
+        echo "Sync in progress..." >> "$LOGFILE"
     done
+    echo "git add commit" >> "$LOGFILE"
     git add .
-    git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
+    # git commit  fails if the repo it's not up to date
+    # Add a || true so that always returns zero and the script doesn't exit
+    git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`" || true
     # TODO commit only once, get --name-only information from another source
-    git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
+    git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend || true
 }
 
 git_pull() {
 
     PULL_CODE=0 # Establish default value, only replace if its different from 0
+    echo "git pull" >> "$LOGFILE"
     PULL_RESULT=$(git pull) || PULL_CODE=${PULL_CODE:-$(check_conflict "$?")}
     echo $PULL_RESULT >> "$LOGFILE"
     if [ "$PULL_RESULT" !=  "Already up to date." ]; then
@@ -93,6 +98,7 @@ git_pull() {
 
 git_push () {
 
+    echo "git push" >> "$LOGFILE"
     PUSH_CODE=0 # Establish default value, only replace if its different from 0
     PUSH_RESULT=$(git push) || PUSH_CODE=${PUSH_CODE:-$(check_conflict "$?")}
     echo $PUSH_RESULT >> "$LOGFILE"
@@ -199,6 +205,7 @@ POLLING_SECONDS=10
 SYNC_WAIT_SECONDS=10
 CONFIRM_SECONDS=60
 
+echo "Starting git-sync-polling" >> "$LOGFILE"
 git-sync-polling &
 
 while true; do
