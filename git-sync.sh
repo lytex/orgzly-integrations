@@ -82,9 +82,9 @@ git_add_commit() {
     git add .
     # git commit  fails if the repo it's not up to date
     # Add a || true so that always returns zero and the script doesn't exit
-    git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`" || true
-    # TODO commit only once, get --name-only information from another source
-    git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend || true
+    user_date=$(git config user.name`@`date +'%Y-%m-%d %H:%M:%S')
+    changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
+    git commit -m "autocommit $user_date $changed_files" || true
 }
 
 git_pull() {
