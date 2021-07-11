@@ -8,7 +8,7 @@ echo_date () {
     echo `date` $1
 }
 
-LOGFILE="$HOME/git-sync.log"
+export LOGFILE="$HOME/git-sync.log"
 
 if command -v "termux-info" &>/dev/null ; then
     NOTIF_CMD="termux-notification"
