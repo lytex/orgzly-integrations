@@ -17,6 +17,12 @@ echo_date () {
     echo `date` $1
 }
 
+declare -i PUSH_CODE
+declare PUSH_RESULT
+declare -i PULL_CODE
+declare PULL_RESULT
+MAX_RETRY_CONNECTION=5 # Number of times to retry connection
+
 
 if [ "$(uname -m)" == "armv7l" ]; then
     TIMEOUT_PING="true"
@@ -33,6 +39,7 @@ check_conflict() {
         # TODO grep $1 against something like "automerge failed" (see git pull when there is a merge conflict)
         # Lost of connection may be notified as false conflicts
         eval "$TIMEOUT_PING" && [ -n "$(git status -s)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+        echo $1
     fi
 }
 
@@ -41,52 +48,95 @@ launch_orgzly_sync() {
 
     # Recommended intent: https://github.com/orgzly/orgzly-android/issues/231
     $AM broadcast -a com.orgzly.intent.action.SYNC_START com.orgzly/com.orgzly.android.ActionReceiver
+
     # This should trigger an SYNC_IN_PROGRESS notifications and the while loop below shouldn't be necessary
+    # Uncomment if needed again
+    # while ( ! eval $SYNC_IN_PROGRESS ); do
+    #     sleep 1
+    #     echo `date +'%Y-%m-%d %H:%M:%S retrying...'`
+    #     $AM start com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
+    #     $AM broadcast -a com.orgzly.intent.action.SYNC_START com.orgzly/com.orgzly.android.ActionReceiver
+    # done
 
-    while ( ! eval $SYNC_IN_PROGRESS ); do
-        sleep 1
-        echo `date +'%Y-%m-%d %H:%M:%S retrying...'`
-        $AM start com.orgzly/com.orgzly.android.ui.main.MainActivity -W 
-        $AM broadcast -a com.orgzly.intent.action.SYNC_START com.orgzly/com.orgzly.android.ActionReceiver
+    # echo `date +'%Y-%m-%d %H:%M:%S success!'`  
+}
+
+wait_for_connection () {
+    # Loop until there is connectivity, or try == $MAX_RETRY_CONNECTION
+    try=0
+    while (! eval "$TIMEOUT_PING") & (($try < $MAX_RETRY_CONNECTION)); do
+        $NOTIF_LOST_CONNECTION
+        sleep $SYNC_WAIT_SECONDS
+        $((try++))
     done
-
-    echo `date +'%Y-%m-%d %H:%M:%S success!'`  
 }
 
 git_add_commit() {
+    # To avoid weird commits where files are missing because orgzly is in the middle of a Sync,
+    # add_commit only when this Sync has finished
+    while eval $SYNC_IN_PROGRESS; do
+        sleep $SYNC_WAIT_SECONDS
+        echo "Sync in progress..." >> "$LOGFILE"
+    done
+    echo "git add commit" >> "$LOGFILE"
     git add .
-    git commit -m "autocommit `git config user.name`@`date +'%Y-%m-%d %H:%M:%S'`"
-    # TODO commit only once, get --name-only information from another source
-    git commit -m "autocommit $(git log -n 1 --pretty=format:"%an@%ci" --name-only)" --amend
+    # git commit  fails if the repo it's not up to date
+    # Add a || true so that always returns zero and the script doesn't exit
+    user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
+    changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
+    git commit -m "autocommit $user_date $changed_files" || true
 }
 
-git_push() {
-    git push || ( ( git pull || check_conflict "$?" ) && git_add_commit && git push ) || \
-        check_conflict "$?"
+git_pull() {
+
+    PULL_CODE=0 # Establish default value, only replace if its different from 0
+    echo "git pull" >> "$LOGFILE"
+    PULL_RESULT=$(git pull) || PULL_CODE=${PULL_CODE:-$(check_conflict "$?")}
+    echo $PULL_RESULT >> "$LOGFILE"
+    if [ "$PULL_RESULT" !=  "Already up to date." ]; then
+        ## This code is skipped unless we are in an Android device
+        orgzly_check_and_sync
+    fi
+}
+
+git_push () {
+
+    echo "git push" >> "$LOGFILE"
+    PUSH_CODE=0 # Establish default value, only replace if its different from 0
+    PUSH_RESULT=$(git push) || PUSH_CODE=${PUSH_CODE:-$(check_conflict "$?")}
+    echo $PUSH_RESULT >> "$LOGFILE"
 }
 
 git-sync-polling() {
     while true; do
-        # if there are new commits, start the process
-        if [ -n "$(git fetch 2>&1)" ]; then
-            echo "New commits" >> "$LOGFILE"
-            while eval $SYNC_IN_PROGRESS; do
-                sleep $SYNC_WAIT_SECONDS
-            done
-            # add commit always, even if there is nothing new
-            # thus, you can git pull without failing
-            # merge conflicts may be generated, but the command executes cleanly
-            git_add_commit
-            PULL_RESULT=$(git pull) || check_conflict "$?"
-            echo $PULL_RESULT >> "$LOGFILE"
-            if [ "$PULL_RESULT" !=  "Already up to date." ]; then
-                ## This code is skipped unless we are in an Android device
-                orgzly_check_and_sync
+        while eval "$TIMEOUT_PING"; do # Ensure connectivity
+            # if there are new commits, start the process
+            if [ -n "$(git fetch 2>&1)" ]; then
+                echo "New commits" >> "$LOGFILE"
+                # add commit always, even if there is nothing new
+                # thus, you can git pull without failing
+                # merge conflicts may be generated, but the command executes cleanly
+                git_add_commit
+                git_pull
+                if (( $PULL_CODE == 0 )); then
+                    continue
+                else
+                    wait_for_connection
+                    git_pull
+                fi
+                git_add_commit # In case there is a merge conflict
             fi
-        fi
-        sleep $POLLING_SECONDS
-    done
+            # Redundant add/commit, sometimes it's necessary even though it shouldn't:
+            git_add_commit
+            git_push
+            sleep $POLLING_SECONDS
+        done
+    $NOTIF_LOST_CONNECTION
+    sleep $RETRY_SECONDS
+done 
 }
+
+
 
 
 if is_command termux-info; then
@@ -121,6 +171,7 @@ elif [ "$(uname -m)" == "armv7l" ]; then
 
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
+    SYNC_IN_PROGRESS="false" # Disable command
     SYNCTHING_NOT_RUNNING="false" # Disable command
     NOTIF_CMD=echo_date
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict"
@@ -133,6 +184,7 @@ else
 
     AM="true" # Disable command
     NOTIF_LIST="true" # Disable command
+    SYNC_IN_PROGRESS="false" # Disable command
     SYNCTHING_NOT_RUNNING="false" # Disable command
     NOTIF_CMD="notify-send"
     NOTIF_CONFLICT="$NOTIF_CMD git-sync conflict -t 0"
@@ -153,7 +205,6 @@ for cmd in "git" "$INW" "timeout" "$AM" "$NOTIF_CMD" "$NOTIF_LIST"; do
     is_command "$cmd" || { stderr "Error: Required command '$cmd' not found"; exit 1; }
 done
 
-OLD_DIR=$(pwd)
 cd "$ORG_DIRECTORY"
 echo "$INCOMMAND"
 
@@ -162,8 +213,8 @@ echo "$INCOMMAND"
 RETRY_SECONDS=10
 POLLING_SECONDS=10
 SYNC_WAIT_SECONDS=10
-CONFIRM_SECONDS=60
 
+echo "Starting git-sync-polling" >> "$LOGFILE"
 git-sync-polling &
 
 while true; do
@@ -175,21 +226,33 @@ while true; do
             RETRY_SECONDS=300
             POLLING_SECONDS=300
             SYNC_WAIT_SECONDS=60
-            CONFIRM_SECONDS=60
         else
             # This is the behavior by default on Raspberry Pi and desktop environments
             # When syncthing is enabled, run frequently
             echo "Syncthing is running! Going into frequent mode..."
-            RETRY_SECONDS=10
-            POLLING_SECONDS=10
+            RETRY_SECONDS=15
+            POLLING_SECONDS=60
             SYNC_WAIT_SECONDS=10
-            CONFIRM_SECONDS=60
         fi
 
         # Wait until there's a file change
         eval "$INCOMMAND" || true
         git_add_commit
         git_push
+        if (( $PUSH_CODE == 0 )); then
+            continue
+        else
+            wait_for_connection
+            git_push
+            git_pull
+            if (( $PULL_CODE == 0 )); then
+                continue
+            else
+                wait_for_connection
+                git_pull
+                git push
+            fi
+        fi
     done
     $NOTIF_LOST_CONNECTION
     sleep $RETRY_SECONDS
