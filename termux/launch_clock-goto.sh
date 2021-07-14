@@ -1,4 +1,4 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-cd /data/data/com.termux/files/home/orgzly-integrations/
+cd /data/data/com.termux/files/home/orgzly-integrations/termux
 ./clock-goto.sh
