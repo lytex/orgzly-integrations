@@ -8,7 +8,8 @@ while true; do
     files=$(eval $INCOMMAND | grep -i "\.org$")
     echo $files
     for file in "$files"; do
-        emacs --batch --eval="(progn (load-file \"$HOME/.emacs.d/early-init.el\") (load-file \"$HOME/.emacs.d/init.el\" ) (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
-        emacs --batch --eval="(progn (load-file \"$HOME/.emacs.d/early-init.el\") (load-file \"$HOME/.emacs.d/init.el\" ) (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
+        if [ -n "$file" ]; then
+            emacs --batch --eval="(progn (load-file \"$HOME/.emacs.d/early-init.el\") (load-file \"$HOME/.emacs.d/init.el\" ) (find-file \"$file\") (org-transclusion-mode t) (org-html-export-to-html))"
+        fi
     done
 done
