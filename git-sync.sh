@@ -235,22 +235,24 @@ while true; do
             SYNC_WAIT_SECONDS=10
         fi
 
-        # Wait until there's a file change
-        eval "$INCOMMAND" || true
-        git_add_commit
-        git_push
-        if (( $PUSH_CODE == 0 )); then
-            continue
-        else
-            wait_for_connection
+        # Wait until there's a file change matching .org files
+        files=$(eval $INCOMMAND | grep -i "\.org$") || true
+        if [ -n "$files" ]; then
+            git_add_commit
             git_push
-            git_pull
-            if (( $PULL_CODE == 0 )); then
+            if (( $PUSH_CODE == 0 )); then
                 continue
             else
                 wait_for_connection
+                git_push
                 git_pull
-                git push
+                if (( $PULL_CODE == 0 )); then
+                    continue
+                else
+                    wait_for_connection
+                    git_pull
+                    git push
+                fi
             fi
         fi
     done
