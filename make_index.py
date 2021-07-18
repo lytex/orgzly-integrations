@@ -8,6 +8,8 @@ load_dotenv()
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 ORGZLY_FILE_INDEX = os.getenv("ORGZLY_FILE_INDEX")
+with open(".lnignore") as f:
+    ignored = f.read().split("\n")
 
 os.chdir(ORG_DIRECTORY)
 
@@ -32,8 +34,9 @@ def build_index(path: str, level: int) -> Iterable[str]:
         directories, files = sorted(directories, key=lowercase), sorted(files, key=lowercase)
 
         for directory in directories:
-            yield "*" * (level + 1) + f" {directory}"
-            yield from build_index(os.path.join(root, directory), level + 1)
+            if directory not in ignored:
+                yield "*" * (level + 1) + f" {directory}"
+                yield from build_index(os.path.join(root, directory), level + 1)
 
         for file in files:
             if file.endswith(".org"):
