@@ -1,5 +1,5 @@
 import os
-from os.path import isdir
+from os.path import isdir, isfile
 from typing import Iterable
 
 from dotenv import load_dotenv
