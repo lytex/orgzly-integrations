@@ -14,7 +14,11 @@ os.chdir(ORG_DIRECTORY)
 
 def ls(path: str):
     files_and_dirs = os.listdir(path)
-    yield path, filter(isdir, files_and_dirs), filter(lambda x: not isdir(x), files_and_dirs)
+    files_and_dirs = [os.path.join(path, x) for x in files_and_dirs]
+    dirs, files = list(filter(isdir, files_and_dirs)), list(filter(lambda x: isfile(x), files_and_dirs))
+    dirs = [x.replace(os.path.join(path, ""), "") for x in dirs]
+    files = [x.replace(os.path.join(path, ""), "") for x in files]
+    yield path, dirs, files
 
 
 def lowercase(s: str):
@@ -22,14 +26,14 @@ def lowercase(s: str):
 
 
 def build_index(path: str, level: int) -> Iterable[str]:
-    path = ls(path)
+    path = list(ls(path))
 
     for root, directories, files in path:
         directories, files = sorted(directories, key=lowercase), sorted(files, key=lowercase)
 
         for directory in directories:
             yield "*" * (level + 1) + f" {directory}"
-            yield from sorted(build_index(root + "/" + directory, level + 1), key=lowercase)
+            yield from build_index(os.path.join(root, directory), level + 1)
 
         for file in files:
             if file.endswith(".org"):
