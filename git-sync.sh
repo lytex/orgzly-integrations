@@ -24,6 +24,7 @@ declare PUSH_RESULT
 declare -i PULL_CODE
 declare PULL_RESULT
 MAX_RETRY_CONNECTION=5 # Number of times to retry connection
+MAX_RETRY_ADD_COMMIT=3 # Number of times to retry git add, commit
 
 
 if [ "$(uname -m)" == "armv7l" ]; then
@@ -77,7 +78,7 @@ git_add_commit() {
     # To avoid weird commits where files are missing because orgzly is in the middle of a Sync,
     # add_commit only when this Sync has finished
     try=0
-    while ((try < 3)); do
+    while ((try < MAX_RETRY_ADD_COMMIT)); do
         echo "Retrying for the $try time" >> "$LOGFILE"
         while eval "$SYNC_IN_PROGRESS"; do
             sleep "$SYNC_WAIT_SECONDS"
