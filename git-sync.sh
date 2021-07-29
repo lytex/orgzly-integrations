@@ -74,9 +74,14 @@ wait_for_connection () {
 git_add_commit() {
     # To avoid weird commits where files are missing because orgzly is in the middle of a Sync,
     # add_commit only when this Sync has finished
-    while eval $SYNC_IN_PROGRESS; do
-        sleep $SYNC_WAIT_SECONDS
-        echo "Sync in progress..." >> "$LOGFILE"
+    retry=0
+    while ((retry < 3)); do
+        echo "Retrying for the $retry time" >> "$LOGFILE"
+        while eval "$SYNC_IN_PROGRESS"; do
+            sleep "$SYNC_WAIT_SECONDS"
+            echo "Sync in progress..." >> "$LOGFILE"
+        done
+        ((retry++))
     done
     echo "git add commit" >> "$LOGFILE"
     git add .
