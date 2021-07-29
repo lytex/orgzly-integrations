@@ -94,7 +94,7 @@ git_add_commit() {
         changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
         COMMIT_CODE=0
         git commit -m "autocommit $user_date $changed_files" || COMMIT_CODE=$?
-        if (( COMMIT_RESULT != 0 )); then
+        if (( COMMIT_CODE != 0 )); then
             echo $((try++)) > /dev/null
         else
             break
