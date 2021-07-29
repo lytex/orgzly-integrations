@@ -2,6 +2,8 @@
 # Modified from https://jakemccrary.com/blog/2020/02/25/auto-syncing-a-git-repository/
 
 set -e
+PS4='+${LINENO}:'
+set -vx
 
 source .env # Get ORG_DIRECTORY environment var from one centralized file
 
@@ -74,22 +76,25 @@ wait_for_connection () {
 git_add_commit() {
     # To avoid weird commits where files are missing because orgzly is in the middle of a Sync,
     # add_commit only when this Sync has finished
-    retry=0
-    while ((retry < 3)); do
-        echo "Retrying for the $retry time" >> "$LOGFILE"
+    try=0
+    while ((try < 3)); do
+        echo "Retrying for the $try time" >> "$LOGFILE"
         while eval "$SYNC_IN_PROGRESS"; do
             sleep "$SYNC_WAIT_SECONDS"
             echo "Sync in progress..." >> "$LOGFILE"
         done
-        ((retry++))
-    done
-    echo "git add commit" >> "$LOGFILE"
-    git add .
-    # git commit  fails if the repo it's not up to date
-    # Add a || true so that always returns zero and the script doesn't exit
-    user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
-    changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
-    git commit -m "autocommit $user_date $changed_files" || true
+        echo "git add commit" >> "$LOGFILE"
+        # when there's another process locking the index, add fails with:
+        # fatal: Unable to create '<path to repo>/.git/index.lock': File exists.
+        # Add a || true so that always returns zero and the script doesn't exit
+        git add . || true
+        # git commit fails if the repo it there are not any changes
+        # Also add || true (see above)
+        user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
+        changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
+        git commit -m "autocommit $user_date $changed_files" || true
+    echo $((retry++)) > /dev/null
+done
 }
 
 git_pull() {
