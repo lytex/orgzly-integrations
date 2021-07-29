@@ -92,7 +92,8 @@ git_add_commit() {
         # Also add || true (see above)
         user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
         changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
-        COMMIT_RESULT=$(git commit -m "autocommit $user_date $changed_files") || true
+        COMMIT_CODE=0
+        git commit -m "autocommit $user_date $changed_files" || COMMIT_CODE=$?
         if (( COMMIT_RESULT != 0 )); then
             echo $((try++)) > /dev/null
         else
