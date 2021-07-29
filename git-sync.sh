@@ -93,8 +93,8 @@ git_add_commit() {
         user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
         changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
         git commit -m "autocommit $user_date $changed_files" || true
-    echo $((retry++)) > /dev/null
-done
+        echo $((try++)) > /dev/null
+    done
 }
 
 git_pull() {
