@@ -113,7 +113,7 @@ git_push () {
 
     echo "git push" >> "$LOGFILE"
     PUSH_CODE=0 # Establish default value, only replace if its different from 0
-    PUSH_RESULT=$(git push 2>&1) || PUSH_CODE=${PUSH_CODE:-$(check_conflict "$?")}
+    PUSH_RESULT=$(git push 2>&1) || ( PUSH_CODE=${PUSH_CODE:-$(check_conflict "$?")}; git_pull )
     echo $PUSH_RESULT >> "$LOGFILE"
 }
 
