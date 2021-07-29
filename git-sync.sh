@@ -86,15 +86,18 @@ git_add_commit() {
         echo "git add commit" >> "$LOGFILE"
         # when there's another process locking the index, add fails with:
         # fatal: Unable to create '<path to repo>/.git/index.lock': File exists.
-        # Add a || true so that always returns zero and the script doesn't exit
-        git add . || true
-        # git commit fails if the repo it there are not any changes
-        # Also add || true (see above)
+        ADD_CODE=0
+        git add . || ADD_CODE=$?
         user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
         changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
+        # git commit fails if the repo it there are not any changes
         COMMIT_CODE=0
-        git commit -m "autocommit $user_date $changed_files" || COMMIT_CODE=$?
-        if (( COMMIT_CODE != 0 )); then
+        COMMIT_RESULT=$(git commit -m "autocommit $user_date $changed_files") || COMMIT_CODE=$?
+        echo $COMMIT_RESULT
+        if echo $COMMIT_RESULT | grep "nothing to commit, working tree clean"; then
+            COMMIT_CODE=0
+        fi
+        if (( ( ADD_CODE | COMMIT_CODE ) != 0 )); then
             echo $((try++)) > /dev/null
         else
             break
