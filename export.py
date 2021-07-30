@@ -13,8 +13,6 @@ load_dotenv()
 with open(".lnignore") as f:
     ignored = f.read().split("\n")
 
-ignored = filter(None, ignored)
-
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 os.chdir(ORG_DIRECTORY)
 
@@ -44,7 +42,7 @@ def get_allowed_directories(path):
     all_directories = get_directories_recursive(path)
     allowed_directories = []
     for x in all_directories:
-        if not any([os.path.relpath(x, ORG_DIRECTORY).startswith(y) for y in ignored]):
+        if not any([os.path.relpath(x, ORG_DIRECTORY).find(y) != 0 for y in ignored]):
             allowed_directories.append(x)
     print(f"Allowed directories are:\n{allowed_directories}")
     return allowed_directories
