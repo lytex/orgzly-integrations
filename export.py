@@ -119,7 +119,7 @@ async def main():
     last_event_name = ""
     last_event_timestamp = time.time()
     async for event in watch_recursive(Path(ORG_DIRECTORY), Mask.CLOSE_WRITE | Mask.MOVE | Mask.DELETE | Mask.CREATE):
-        print(f"MAIN: got {event} for path {event.path}")
+        print(f"MAIN: got {event} for path {event.path} and name {event.name}")
         if str(event.name).endswith(".org") and (
             # This avoids to retrigger export.py by emacs opening the file itself
             # If another events occurs within 120s, allow it
