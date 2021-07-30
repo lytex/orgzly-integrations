@@ -41,6 +41,7 @@ def get_directories_recursive(path: Path) -> Generator[Path, None, None]:
 async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]:
     with Inotify() as inotify:
         for directory in get_directories_recursive(path):
+            print(os.realpath(directory, ORG_DIRECTORY))
             if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
                 print(f"INIT: watching {directory}")
                 inotify.add_watch(
