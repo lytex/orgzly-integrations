@@ -13,6 +13,9 @@ load_dotenv()
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 os.chdir(ORG_DIRECTORY)
 
+with open(".lnignore") as f:
+    ignored = f.read().split("\n")
+
 # from https://gitlab.com/Taywee/asyncinotify/-/blob/master/examples/recursivewatch.py
 
 
@@ -75,11 +78,12 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
             # anything.
             if Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
                 for directory in get_directories_recursive(event.path):
-                    print(f"EVENT: watching {directory}")
-                    inotify.add_watch(
-                        directory,
-                        mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED,
-                    )
+                    if directory not in ignored:
+                        print(f"EVENT: watching {directory}")
+                        inotify.add_watch(
+                            directory,
+                            mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED,
+                        )
 
             # If there is at least some overlap, assume the user wants this event.
             if event.mask & mask:
