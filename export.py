@@ -2,6 +2,7 @@ import asyncio
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import AsyncGenerator, Generator
 
@@ -116,9 +117,15 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
 
 async def main():
     last_event_name = ""
+    last_event_timestamp = time.time()
     async for event in watch_recursive(Path(ORG_DIRECTORY), Mask.CLOSE_WRITE | Mask.MOVE | Mask.DELETE | Mask.CREATE):
         print(f"MAIN: got {event} for path {event.path}")
-        if str(event.name).endswith(".org") and str(event.name) != last_event_name:
+        if str(event.name).endswith(".org") and (
+            # This avoids to retrigger export.py by emacs opening the file itself
+            # If another events occurs within 120s, allow it
+            (str(event.name) != last_event_name)
+            ^ (time.time() - last_event_timestamp > 120)
+        ):
             cmd = (
                 "emacs --batch --eval="
                 '\'(progn (load-file "$HOME/.emacs.d/early-init.el") (load-file "$HOME/.emacs.d/init.el" )'
@@ -131,6 +138,7 @@ async def main():
                 shell=True,
             )
             last_event_name = str(event.name)
+            last_event_timestamp = time.time()
 
 
 loop = asyncio.get_event_loop()
