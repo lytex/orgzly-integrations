@@ -42,9 +42,9 @@ def get_directories_recursive(path: Path) -> Generator[Path, None, None]:
 
 def get_allowed_directories(path):
     all_directories = get_directories_recursive(path)
-    allowed_directories = filter(
-        [x for x in all_directories for y in ignored if not os.path.relpath(x, ORG_DIRECTORY).startswith(y)]
-    )
+    allowed_directories = [
+        x for x in all_directories for y in ignored if not os.path.relpath(x, ORG_DIRECTORY).startswith(y)
+    ]
     print(f"Allowed directories are:\n{allowed_directories}")
     return allowed_directories
 
@@ -53,12 +53,10 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
     with Inotify() as inotify:
         allowed_directories = get_allowed_directories(path)
         for directory in allowed_directories:
-            print(os.path.relpath(directory, ORG_DIRECTORY))
-            if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
-                print(f"INIT: watching {directory}")
-                inotify.add_watch(
-                    directory, mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED
-                )
+            print(f"INIT: watching {directory}")
+            inotify.add_watch(
+                directory, mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED
+            )
 
         # Things that can throw this off:
         #
@@ -94,12 +92,11 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
             if Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
                 allowed_directories = get_allowed_directories(event.path)
                 for directory in allowed_directories:
-                    if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
-                        print(f"EVENT: watching {directory}")
-                        inotify.add_watch(
-                            directory,
-                            mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED,
-                        )
+                    print(f"EVENT: watching {directory}")
+                    inotify.add_watch(
+                        directory,
+                        mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED,
+                    )
 
             # If there is at least some overlap, assume the user wants this event.
             if event.mask & mask:
