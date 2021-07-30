@@ -121,10 +121,11 @@ async def main():
     async for event in watch_recursive(Path(ORG_DIRECTORY), Mask.CLOSE_WRITE | Mask.MOVE | Mask.DELETE | Mask.CREATE):
         print(f"MAIN: got {event} for path {event.path} and name {event.name}")
         if str(event.name).endswith(".org") and (
-            # This avoids to retrigger export.py by emacs opening the file itself
-            # If another events occurs within 120s, allow it
-            (str(event.name) != last_event_name)
-            ^ (time.time() - last_event_timestamp > 120)
+            # This avoids to retrigger export.py by emacs opening the file itself (infinite loop)
+            # If another events occurs within a certain number of seconds, allow it
+            (str(event.name) == last_event_name and time.time() - last_event_timestamp > 5)
+            # If they names are not the same, there is no danger of an infinite loop
+            or str(event.name) != last_event_name
         ):
             cmd = (
                 "emacs --batch --eval="
