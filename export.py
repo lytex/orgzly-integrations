@@ -10,11 +10,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+with open(".lnignore") as f:
+    ignored = f.read().split("\n")
+
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 os.chdir(ORG_DIRECTORY)
 
-with open(".lnignore") as f:
-    ignored = f.read().split("\n")
 
 # from https://gitlab.com/Taywee/asyncinotify/-/blob/master/examples/recursivewatch.py
 
