@@ -42,9 +42,10 @@ def get_directories_recursive(path: Path) -> Generator[Path, None, None]:
 
 def get_allowed_directories(path):
     all_directories = get_directories_recursive(path)
-    allowed_directories = [
-        x for x in all_directories for y in ignored if not os.path.relpath(x, ORG_DIRECTORY).startswith(y)
-    ]
+    allowed_directories = []
+    for x in all_directories:
+        if not any([os.path.relpath(x, ORG_DIRECTORY).startswith(y) for y in ignored]):
+            allowed_directories.append(x)
     print(f"Allowed directories are:\n{allowed_directories}")
     return allowed_directories
 
