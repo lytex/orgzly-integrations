@@ -41,10 +41,11 @@ def get_directories_recursive(path: Path) -> Generator[Path, None, None]:
 async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]:
     with Inotify() as inotify:
         for directory in get_directories_recursive(path):
-            print(f"INIT: watching {directory}")
-            inotify.add_watch(
-                directory, mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED
-            )
+            if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
+                print(f"INIT: watching {directory}")
+                inotify.add_watch(
+                    directory, mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED
+                )
 
         # Things that can throw this off:
         #
@@ -79,7 +80,7 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
             # anything.
             if Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
                 for directory in get_directories_recursive(event.path):
-                    if directory not in ignored:
+                    if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
                         print(f"EVENT: watching {directory}")
                         inotify.add_watch(
                             directory,
