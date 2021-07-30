@@ -13,6 +13,8 @@ load_dotenv()
 with open(".lnignore") as f:
     ignored = f.read().split("\n")
 
+ignored = filter(None, ignored)
+
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 os.chdir(ORG_DIRECTORY)
 
@@ -38,10 +40,19 @@ def get_directories_recursive(path: Path) -> Generator[Path, None, None]:
             yield from get_directories_recursive(child)
 
 
+def get_allowed_directories(path):
+    all_directories = get_directories_recursive(path)
+    allowed_directories = filter(
+        [x for x in all_directories for y in ignored if not os.path.relpath(x, ORG_DIRECTORY).startswith(y)]
+    )
+    print(f"Allowed directories are:\n{allowed_directories}")
+    return allowed_directories
+
+
 async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]:
     with Inotify() as inotify:
-        breakpoint()
-        for directory in get_directories_recursive(path):
+        allowed_directories = get_allowed_directories(path)
+        for directory in allowed_directories:
             print(os.path.relpath(directory, ORG_DIRECTORY))
             if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
                 print(f"INIT: watching {directory}")
@@ -81,7 +92,8 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
             # directory before iterating their children, we know we won't miss
             # anything.
             if Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
-                for directory in get_directories_recursive(event.path):
+                allowed_directories = get_allowed_directories(event.path)
+                for directory in allowed_directories:
                     if not any(map(lambda x: os.path.relpath(directory, ORG_DIRECTORY).startswith(x), ignored)):
                         print(f"EVENT: watching {directory}")
                         inotify.add_watch(
