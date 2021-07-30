@@ -44,4 +44,4 @@ def build_index(path: str, level: int) -> Iterable[str]:
 
 
 with open(ORGZLY_FILE_INDEX, "w") as f:
-    print("\n".join(build_index(ORG_DIRECTORY, 0)), file=f)
+    print("#+FILETAGS: :private:\n" + "\n".join(build_index(ORG_DIRECTORY, 0)), file=f)
