@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import os
 import subprocess
 import sys
@@ -119,7 +120,12 @@ async def main():
     last_event_name = ""
     last_event_timestamp = time.time()
     async for event in watch_recursive(Path(ORG_DIRECTORY), Mask.CLOSE_WRITE | Mask.MOVE | Mask.DELETE | Mask.CREATE):
+        print(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
         print(f"MAIN: got {event} for path {event.path} and name {event.name}")
+        print("event.name ends with .org: ", str(event.name).endswith(".org"))
+        print(str(event.name), " == ", last_event_name)
+        print("time: ", time.time() - last_event_timestamp)
+
         if str(event.name).endswith(".org") and (
             # This avoids to retrigger export.py by emacs opening the file itself (infinite loop)
             # If another events occurs within a certain number of seconds, allow it
