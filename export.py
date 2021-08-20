@@ -138,6 +138,8 @@ async def main():
                 '\'(progn (load-file "$HOME/.emacs.d/early-init.el") (load-file "$HOME/.emacs.d/init.el" )'
                 f'(find-file "{event.path}") (org-transclusion-mode t) (org-html-export-to-html))\''
             )
+            # Timeout after 2 minute
+            cmd += "timeout 2m "
             print(cmd)
             subprocess.run(
                 cmd,
