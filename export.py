@@ -138,14 +138,17 @@ async def main():
                 '\'(progn (load-file "$HOME/.emacs.d/early-init.el") (load-file "$HOME/.emacs.d/init.el" )'
                 f'(find-file "{event.path}") (org-transclusion-mode t) (org-html-export-to-html))\''
             )
-            # Timeout after 2 minute
-            cmd += "timeout 2m "
             print(cmd)
-            subprocess.run(
-                cmd,
-                stdout=sys.stdout,
-                shell=True,
-            )
+            try:
+                subprocess.run(
+                    cmd,
+                    stdout=sys.stdout,
+                    shell=True,
+                    # Timeout after 2 minutes
+                    timeout=120
+                )
+            except subprocess.TimeoutExpired:
+                continue
             last_event_name = str(event.name)
             last_event_timestamp = time.time()
 
