@@ -149,7 +149,8 @@ for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
     for custom, uuid in custom_to_id.items():
         content = substitute_customid_links(content)  # TODO Try to do it node by node, seems faster
 
-    with open(path, "w") as f:
-        # Overwrite content
-        f.seek(0)
-        f.write(content)
+    if result != content:
+        with open(path, "w") as f:
+            # Overwrite content
+            f.seek(0)
+            f.write(content)
