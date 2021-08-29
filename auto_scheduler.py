@@ -10,22 +10,12 @@ from orgparse import loads
 from orgparse.node import OrgBaseNode
 from pytz import timezone
 
+import sched_config
+
 dt = datetime.now(tz=timezone("Europe/Madrid"))
 locale.setlocale(locale.LC_ALL, "es_ES.utf8")
 
 load_dotenv()
-
-
-scheduled = {
-    "613d58e9-d4ab-4f60-a109-a8785e1d71a1": {
-        "SCHEDULED": lambda: (datetime.today() + timedelta(days=0))
-        .replace(hour=21, minute=0)
-        .strftime("<%Y-%m-%d %a %H:%M ++1d>"),
-        "DEADLINE": lambda: (datetime.today() + timedelta(days=0))
-        .replace(hour=22, minute=0)
-        .strftime("<%Y-%m-%d %a %H:%M ++1d>"),
-    }
-}
 
 
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
@@ -41,7 +31,6 @@ for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
     root = list(root)
 
     for org_id in scheduled.keys():
-        print(org_id)
         targets = [(ind + 1, x) for ind, x in enumerate(root[1:]) if x.properties.get("ID") == org_id]
         for ind, node in targets:
             content = str(node)

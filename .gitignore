@@ -142,3 +142,4 @@ cython_debug/
 .vscode/
 .org-trello-files
 .lnignore
+sched_config.py
