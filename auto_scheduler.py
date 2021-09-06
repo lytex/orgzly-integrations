@@ -2,15 +2,14 @@ import locale
 import os
 import re
 from glob import glob
-from typing import Callable, Iterable
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from dotenv import load_dotenv
 from orgparse import loads
-from orgparse.node import OrgBaseNode
 from pytz import timezone
 
 import sched_config
+from sched_config import scheduled
 
 dt = datetime.now(tz=timezone("Europe/Madrid"))
 locale.setlocale(locale.LC_ALL, "es_ES.utf8")
@@ -40,6 +39,9 @@ for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
 
             if (deadline_date := scheduled.get(org_id).get("DEADLINE")) is not None:
                 content = re.sub(r"DEADLINE:[ ]+<[^>]+\>", f"DEADLINE: {deadline_date()}", content)
+
+            if (event_date := scheduled.get(org_id).get("EVENT")) is not None:
+                content = re.sub(r"\n<[^>]+\>\n", f"\n{event_date()}\n", content, re.M)
 
             root[ind] = content
 
