@@ -137,8 +137,7 @@ async def main():
                 "emacs --batch"
                 ' -l "$HOME/.emacs.d/early-init.el"'
                 ' -l "$HOME/.emacs.d/init.el"'
-                f' -l "{event.path}"'
-                ' --eval="(progn (org-transclusion-mode t) (org-html-export-to-html))"'
+                f' --eval="(progn (find-file "{event.path}")  (org-transclusion-mode t) (org-html-export-to-html))"'
             )
             print(cmd)
             try:
