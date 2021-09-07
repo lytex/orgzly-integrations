@@ -147,6 +147,7 @@ async def main():
                     stdout=sys.stdout,
                     # Timeout after 2 minutes
                     timeout=120,
+                    shell=True,
                 )
             except subprocess.TimeoutExpired:
                 continue
