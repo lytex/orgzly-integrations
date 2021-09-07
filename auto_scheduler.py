@@ -41,7 +41,10 @@ for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
                 content = re.sub(r"DEADLINE:[ ]+<[^>]+\>", f"DEADLINE: {deadline_date()}", content)
 
             if (event_date := scheduled.get(org_id).get("EVENT")) is not None:
-                content = re.sub(r"\n<[^>]+\>\n", f"\n{event_date()}\n", content, re.M)
+                content = re.sub(r"\n<[^>]+\>\n", f"\n{event_date()}\n", content, re.MULTILINE)
+
+            if scheduled.get(org_id).get("REMOVE_LOGBOOK"):
+                content = re.sub(r":LOGBOOK:\n(\n.+)+?:END:", "", content)
 
             root[ind] = content
 
