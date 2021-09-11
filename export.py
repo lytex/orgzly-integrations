@@ -149,6 +149,7 @@ async def main():
                     shell=True,
                 )
             except subprocess.TimeoutExpired:
+                print(f"Export of {event.path} has exceeded the timeout limit")
                 continue
             last_event_name = str(event.name)
             last_event_timestamp = time.time()
