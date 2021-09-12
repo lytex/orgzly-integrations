@@ -1,11 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-false # This makes $? != 0 at the beggining of the while loop
-
-while (($? != 0)); do
-
-    timeout 1h \
-    emacs -l "$HOME/.emacs.d/early-init.el" -l "$HOME/.emacs.d/init.el" --batch \
-    --eval="(progn (add-to-list 'auth-sources \"~/.auth info\") (org-caldav-sync-calendar) (org-save-all-org-buffers))"
-
-done
+# crontab uses /bin/sh, so the command is:
+/bin/bash -c '/snap/bin/emacs -l "/home/pi/.emacs.d/early-init.el" -l "/home/pi/.emacs.d/init.el" --batch --eval="(progn (add-to-li
+st '"'"'auth-sources \"/home/pi/.authinfo\") (org-caldav-sync-calendar) (org-save-all-org-buffers))"'
