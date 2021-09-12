@@ -99,7 +99,8 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
                     print(f"EVENT: watching {directory}")
                     inotify.add_watch(
                         directory,
-                        mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED,
+                        # Remove Mask.CREATE, Mask.DELETE_SELF
+                        mask | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.IGNORED,
                     )
 
             # If there is at least some overlap, assume the user wants this event.
@@ -119,7 +120,7 @@ async def watch_recursive(path: Path, mask: Mask) -> AsyncGenerator[Event, None]
 async def main():
     last_event_name = ""
     last_event_timestamp = time.time()
-    async for event in watch_recursive(Path(ORG_DIRECTORY), Mask.CLOSE_WRITE | Mask.MOVE | Mask.DELETE | Mask.CREATE):
+    async for event in watch_recursive(Path(ORG_DIRECTORY), Mask.CLOSE_WRITE):
         print(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
         print(f"MAIN: got {event} for path {event.path} and name {event.name}")
         print("event.name ends with .org: ", str(event.name).endswith(".org"))
