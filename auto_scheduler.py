@@ -37,13 +37,16 @@ for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
         for ind, node in targets:
             content = str(node)
 
-            if (scheduled_date := scheduled.get(org_id).get("SCHEDULED")) is not None:
+            scheduled_date = scheduled.get(org_id).get("SCHEDULED")
+            if scheduled_date is not None:
                 content = re.sub(r"SCHEDULED:[ ]+<[^>]+\>", f"SCHEDULED: {scheduled_date()}", content)
 
-            if (deadline_date := scheduled.get(org_id).get("DEADLINE")) is not None:
+            deadline_date = scheduled.get(org_id).get("DEADLINE")
+            if deadline_date is not None:
                 content = re.sub(r"DEADLINE:[ ]+<[^>]+\>", f"DEADLINE: {deadline_date()}", content)
 
-            if (event_date := scheduled.get(org_id).get("EVENT")) is not None:
+            event_date = scheduled.get(org_id).get("EVENT")
+            if event_date is not None:
                 content = re.sub(r"\n<[^>]+\>\n", f"\n{event_date()}\n", content, re.MULTILINE)
 
             if scheduled.get(org_id).get("REMOVE_LOGBOOK"):
