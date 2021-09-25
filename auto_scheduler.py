@@ -28,9 +28,12 @@ for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
 
     root = loads(content)
     root = list(root)
+    # Copy root so that we ensure we are always iterating over a list of OrgNode
+    # root is going to be modified so it well be a mix of OrgNode and str
+    root_copy = root.copy()
 
     for org_id in scheduled.keys():
-        targets = [(ind + 1, x) for ind, x in enumerate(root[1:]) if x.properties.get("ID") == org_id]
+        targets = [(ind + 1, x) for ind, x in enumerate(root_copy[1:]) if x.properties.get("ID") == org_id]
         for ind, node in targets:
             content = str(node)
 
@@ -46,6 +49,8 @@ for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
             if scheduled.get(org_id).get("REMOVE_LOGBOOK"):
                 content = re.sub(r":LOGBOOK:\n(\n.+)+?:END:", "", content)
 
+            # ind allows us to relate it back to root
+            # node is not directly modified, only content
             root[ind] = content
 
     result = str(root[0]) + "\n" + "\n".join([str(x) for x in root[1:]])
