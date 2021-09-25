@@ -140,6 +140,8 @@ cython_debug/
 # My stuff
 *~
 .vscode/
+tags
 .org-trello-files
 .lnignore
 sched_config.py
+dev_config.py
