@@ -130,6 +130,7 @@ for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
 
     if ORGZLY_CUSTOM_ID_FILE is not None:
         with open(ORGZLY_CUSTOM_ID_FILE, "w") as f:
+            f.write("#+TITLE: Custom ID Index\n\n")
             for custom_id, regular_id in custom_to_id.items():
                 f.write(f"* [[id:{regular_id}][{custom_id}]]\n")
 
