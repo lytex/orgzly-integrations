@@ -69,7 +69,6 @@ Since a file deletion can be also a legitimate operation, after `CONFIRM_SECONDS
 Since orgzly has no directory structure, links with a folder before the actual `.org` filename get interpreted as relative to `/storage/emulated/0` (by default on Android).
 
 Check out [Add two settings to configure relative path for file links.](https://github.com/orgzly/orgzly-android/pull/773) which may solve this issue.
-This PR is merged but orgzly hasn't released yet, so in order to use it one would have to build orgzly from source.
 
 `[[file:projects/python/scrapping.org]]` will get converted to `[[file:projects/python/scrapping.org]] [[file:scrapping.org]]` (notice the original link has been replaced).
 By using backreferences, it is guaranteed that the same link won't be added twice (`[[file:projects/python/scrapping.org]] [[file:scrapping.org]] [[file:scrapping.org]]`).
@@ -77,6 +76,30 @@ By using backreferences, it is guaranteed that the same link won't be added twic
 Then in orgzly you would add your `projects/python` folder to the repositories and the link will work as in desktop emacs.
 
 By doing that, we get a first link which can be used on emacs (with all the folder structure) and a second "flattened" link than can be used on orgzly.
+
+### Links with paths beggining with ~
+This converts paths like `[[file:~/Documents/whatever/file.pdf]]` into `[[file:Documents/whatever/file.pdf]]`.
+orgzly doesn't recognize the `~` character, but by stripping it away it recognizes the link relative to
+`/storage/emulated/0` by default
+
+### A little warning
+Due to interaction between the two links substitutions mentioned before, you cannot make a link that is at the same time:
+
+1. A link that starts with `file:~/`
+2. A link that ends with `.org`
+
+This creates multiple copies of the same link
+
+1. `[[file:~/Folder/file.org]]`
+2. `[[file:~/Folder/file.org]] [[file:file.org]]`
+3. `[[file:~/Folder/file.org]] [[file:Folder/file.org]] [[file:file.org]]`
+
+Next time you run the script:
+
+4. `[[file:~/Folder/file.org]] [[file:file.org]] [[file:Folder/file.org]] [[file:file.org]]`
+5. `[[file:~/Folder/file.org]] [[file:Folder/file.org]] [[file:file.org]] [[file:Folder/file.org]] [[file:file.org]]`
+
+and so on
 
 ### Convert custom_id links to ID links
 While on the go, making links by ID can be difficult and time consuming, while custom_id links are way easier to make.
