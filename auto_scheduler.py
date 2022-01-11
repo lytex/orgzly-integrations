@@ -20,7 +20,7 @@ load_dotenv()
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 
 
-for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
+for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True) + glob(f"{ORG_DIRECTORY}/*.org"):
     print(path)
 
     with open(path, "r") as f:
