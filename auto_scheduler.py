@@ -1,9 +1,9 @@
 import locale
 import os
 import re
+from datetime import datetime
 from glob import glob
 
-from datetime import datetime
 from dotenv import load_dotenv
 from orgparse import loads
 from pytz import timezone
@@ -20,7 +20,7 @@ load_dotenv()
 ORG_DIRECTORY = os.getenv("ORG_DIRECTORY")
 
 
-for path in glob(f"{ORG_DIRECTORY}/Mantenimiento.org", recursive=True):
+for path in glob(f"{ORG_DIRECTORY}/**/*.org", recursive=True):
     print(path)
 
     with open(path, "r") as f:
