@@ -20,7 +20,12 @@ def ls(path: str):
 
 
 def lowercase(s: str):
-    return s.lower()
+    if s.startswith("page") and s.endswith(".png") and s != "page.png":
+        return int(s[4:-4])
+    if s.startswith("text") and s.endswith(".txt") and s != "text.txt":
+        return int(s[4:-4])
+    else:
+        return -1
 
 
 def build_index(path: str, level: int) -> Iterable[str]:
@@ -28,7 +33,7 @@ def build_index(path: str, level: int) -> Iterable[str]:
     # print(path)
 
     for root, directories, files in path:
-        directories, files = sorted(directories, key=lowercase), sorted(files, key=lowercase)
+        directories, files = sorted(directories, key=lambda x: x.lower()), sorted(files, key=lowercase)
 
         for directory in directories:
             yield "*" * (level + 1) + f" {directory}"
