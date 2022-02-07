@@ -1,6 +1,6 @@
 import os
-from os.path import isdir, isfile
 import re
+from os.path import isdir, isfile
 from typing import Iterable
 
 from dotenv import load_dotenv
@@ -39,8 +39,11 @@ def build_index(path: str, level: int) -> Iterable[str]:
                 link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
                 uri = re.sub(r"page([0-9]+).png", r"\1/", link)
                 notebook = intent_uri.format(path=uri)
-
                 yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
+            elif file.endswith(".txt") and file.startswith("text"):
+                with open(f"{root}/{file}") as f:
+                    contents = "*" * (level + 2) + " " + file.replace(".txt", "") + "\n" + f.read()
+                yield contents
 
 
 load_dotenv()
