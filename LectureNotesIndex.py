@@ -20,10 +20,20 @@ def ls(path: str):
 
 
 def lowercase(s: str):
+    high = 10000
     if s.startswith("page") and s.endswith(".png") and s != "page.png":
-        return int(s[4:-4])
+        return int(s[4:-4]) * high
     if s.startswith("text") and s.endswith(".txt") and s != "text.txt":
-        return int(s[4:-4])
+        second = 0
+        try:
+            # text2_1.txt
+            first = int(re.sub(r"text([0-9]+)_([0-9]+).txt", r"\1", s))
+            second = int(re.sub(r"text([0-9]+)_([0-9]+).txt", r"\2", s))
+        except ValueError:
+            # text2.txt
+            first = int(re.sub(r"text([0-9]+).txt", r"\1", s))
+
+        return first * high + second
     else:
         return -1
 
@@ -40,12 +50,12 @@ def build_index(path: str, level: int) -> Iterable[str]:
             yield from build_index(os.path.join(root, directory), level + 1)
 
         for file in files:
-            if file.endswith(".png") and file.startswith("page"):
+            if file.endswith(".png") and file.startswith("page") and file != "page.png":
                 link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
                 uri = re.sub(r"page([0-9]+).png", r"\1/", link)
                 notebook = intent_uri.format(path=uri)
                 yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
-            elif file.endswith(".txt") and file.startswith("text"):
+            elif file.endswith(".txt") and file.startswith("text") and file != "text.txt":
                 with open(f"{root}/{file}") as f:
                     contents = "*" * (level + 2) + " " + file.replace(".txt", "") + "\n" + f.read()
                 yield contents
