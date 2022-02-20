@@ -24,7 +24,8 @@ def lowercase(s: str):
     if s.startswith("page") and s.endswith(".png") and s != "page.png":
         return int(s[4:-4]) * high
     if s.startswith("text") and s.endswith(".txt") and s != "text.txt":
-        second = 0
+        # Order for textN.txt, after pageN.png but before textN_1.txt
+        second = 0.5
         try:
             # text2_1.txt
             first = int(re.sub(r"text([0-9]+)_([0-9]+).txt", r"\1", s))
@@ -38,7 +39,7 @@ def lowercase(s: str):
         return -1
 
 
-def build_index(path: str, level: int) -> Iterable[str]:
+def build_index(path: str, level: int, write=True) -> Iterable[str]:
     path = list(ls(path))
     # print(path)
 
@@ -46,33 +47,43 @@ def build_index(path: str, level: int) -> Iterable[str]:
         directories, files = sorted(directories, key=lambda x: x.lower()), sorted(files, key=lowercase)
 
         for directory in directories:
-            yield "*" * (level + 1) + f" {directory}"
-            yield from build_index(os.path.join(root, directory), level + 1)
+            if write:
+                yield "*" * (level + 1) + f" {directory}"
+            else:
+                yield root, directory
+            yield from build_index(os.path.join(root, directory), level + 1, write)
 
         for file in files:
             if file.endswith(".png") and file.startswith("page") and file != "page.png":
-                link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
-                uri = re.sub(r"page([0-9]+).png", r"\1/", link)
-                notebook = intent_uri.format(path=uri)
-                yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
+                if write:
+                    link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
+                    uri = re.sub(r"page([0-9]+).png", r"\1/", link)
+                    notebook = intent_uri.format(path=uri)
+                    yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
+                else:
+                    yield root, file
             elif file.endswith(".txt") and file.startswith("text") and file != "text.txt":
-                with open(f"{root}/{file}") as f:
-                    contents = "*" * (level + 2) + " " + file.replace(".txt", "") + "\n" + f.read()
-                yield contents
+                if write:
+                    with open(f"{root}/{file}") as f:
+                        contents = "*" * (level + 2) + " " + file + "\n" + f.read()
+                    yield contents
+                else:
+                    yield root, file
 
 
-load_dotenv()
+if __name__ == "__main__":
 
-LECTURE_NOTES_DIRECTORY = os.getenv("LECTURE_NOTES_DIRECTORY")
-LECTURE_NOTES_ORG_FILE_INDEX = os.getenv("LECTURE_NOTES_ORG_FILE_INDEX")
-LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
-os.chdir(LECTURE_NOTES_DIRECTORY)
+    load_dotenv()
 
+    LECTURE_NOTES_DIRECTORY = os.getenv("LECTURE_NOTES_DIRECTORY")
+    LECTURE_NOTES_ORG_FILE_INDEX = os.getenv("LECTURE_NOTES_ORG_FILE_INDEX")
+    LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
+    os.chdir(LECTURE_NOTES_DIRECTORY)
 
-with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
+    with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
 
-    print(
-        "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n"
-        + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
-        file=f,
-    )
+        print(
+            "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n"
+            + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
+            file=f,
+        )
