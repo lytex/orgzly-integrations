@@ -1,3 +1,5 @@
+from time import sleep
+
 from orgparse import loads
 
 from LectureNotesIndex import *
@@ -26,8 +28,12 @@ if __name__ == "__main__":
     LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
     os.chdir(LECTURE_NOTES_DIRECTORY)
 
+    adquire_lock_waiting()
     with open(LECTURE_NOTES_ORG_FILE_INDEX, "r") as f:
         info = loads(f.read())
+
+    sleep(1)
+    release_lock()
     tree = list(build_index(LECTURE_NOTES_DIRECTORY, 0, False))
 
     # paths = list(map(lambda x: f"{x[0]}/{x[1]}".replace(LECTURE_NOTES_DIRECTORY, ""), tree))
@@ -39,15 +45,25 @@ if __name__ == "__main__":
             body = node.body
             relative = "/".join(reversed(list(map(lambda x: x.heading, get_full_parent(node, 0)))))
             try:
+
+                adquire_lock_waiting()
                 with open(relative, "x"):
-                    print(f"{relative} does not exist, creating file...")
+                    logging.info(f"{relative} does not exist, creating file...")
+
+                sleep(1)
+                release_lock()
             except FileExistsError:
                 pass
+
+            adquire_lock_waiting()
             with open(relative, "r+") as f:
                 f.seek(0)
                 contents = f.read()
                 if contents != body:
-                    print(f"{relative} has changed! Writing new contents to file...")
+                    logging.info(f"{relative} has changed! Writing new contents to file...")
                     f.seek(0)
                     f.write(body)
                     f.truncate()
+
+            sleep(1)
+            release_lock()

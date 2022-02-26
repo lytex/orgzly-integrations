@@ -1,6 +1,8 @@
+import logging
 import os
 import re
 from os.path import isdir, isfile
+from time import sleep
 from typing import Iterable
 
 from dotenv import load_dotenv
@@ -8,6 +10,56 @@ from dotenv import load_dotenv
 intent_uri = (
     "http://127.0.0.1:8000/am?cmd=start%%20-a%%20android.intent.action.VIEW%%20-d%%20%%22lecturenotes://{path}%%22"
 )
+
+FORMAT = "%(asctime)s.%(msecs)03d %(levelname)s:%(filename)s:%(message)s"
+FILENAME = "123.log"
+logging.basicConfig(filename=FILENAME, level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=FORMAT)
+
+
+def adquire_lock_waiting():
+    try:
+        adquire_lock()
+    except RuntimeError:
+        wait_lock_release()
+
+
+def wait_lock_release():
+    logging.info("Waiting for lock...")
+    while os.system(f"ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}") == 0:
+        sleep(1)
+    if (
+        os.system(
+            f"! ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']} &> /dev/null && touch {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}"
+        )
+        == 0
+    ):
+        logging.info("Lock adquired")
+    else:
+        raise RuntimeError("Lock could not be adquired")
+
+
+def release_lock():
+    if (
+        os.system(
+            f"ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']} &> /dev/null && rm {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}"
+        )
+        == 0
+    ):
+        logging.info("Lock released")
+    else:
+        raise RuntimeError("Lock could not be released")
+
+
+def adquire_lock():
+    if (
+        os.system(
+            f"! ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']} &> /dev/null && touch {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}"
+        )
+        == 0
+    ):
+        logging.info("Lock adquired")
+    else:
+        raise RuntimeError("Lock could not be adquired")
 
 
 def ls(path: str):
@@ -64,8 +116,11 @@ def build_index(path: str, level: int, write=True) -> Iterable[str]:
                     yield root, file
             elif file.endswith(".txt") and file.startswith("text") and file != "text.txt":
                 if write:
+                    adquire_lock_waiting()
                     with open(f"{root}/{file}") as f:
                         contents = "*" * (level + 2) + " " + file + "\n" + f.read()
+                    sleep(1)
+                    release_lock()
                     yield contents
                 else:
                     yield root, file
@@ -80,6 +135,7 @@ if __name__ == "__main__":
     LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
     os.chdir(LECTURE_NOTES_DIRECTORY)
 
+    adquire_lock_waiting()
     with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
 
         print(
@@ -87,3 +143,6 @@ if __name__ == "__main__":
             + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
             file=f,
         )
+
+    sleep(1)
+    release_lock()
