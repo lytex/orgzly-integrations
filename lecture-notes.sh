@@ -19,7 +19,7 @@ watch4LectureNotes () {
         eval $INCOMMAND
         if (( $? == 0 )); then
             echo "Detected LectureNotes event!"
-            if ! ls $LECTURE_NOTES_ORG_LOCK_FILE &> /dev/null; then
+            if ! ls "$LECTURE_NOTES_ORG_LOCK_FILE" &> /dev/null; then
                 echo "Lock is free"
                 cd $ORGZLY_DIR
                     python3 LectureNotesIndex.py 
@@ -33,7 +33,7 @@ watch4Org () {
     while true; do
         eval $INCOMMAND2
         echo "Detected Org event!"
-        if ! ls $LECTURE_NOTES_ORG_LOCK_FILE &> /dev/null; then
+        if ! ls "$LECTURE_NOTES_ORG_LOCK_FILE" &> /dev/null; then
             echo "Lock is free"
             cd $ORGZLY_DIR
                 python3 LectureNotesRead.py 

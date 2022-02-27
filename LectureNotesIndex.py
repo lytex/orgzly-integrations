@@ -25,11 +25,11 @@ def adquire_lock_waiting():
 
 def wait_lock_release():
     logging.info("Waiting for lock...")
-    while os.system(f"ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}") == 0:
+    while os.system(f"ls \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\"") == 0:
         sleep(1)
     if (
         os.system(
-            f"! ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']} &> /dev/null && touch {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}"
+            f"! ls \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\" &> /dev/null && touch \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\""
         )
         == 0
     ):
@@ -41,7 +41,7 @@ def wait_lock_release():
 def release_lock():
     if (
         os.system(
-            f"ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']} &> /dev/null && rm {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}"
+            f"ls \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\" &> /dev/null && rm \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\""
         )
         == 0
     ):
@@ -53,7 +53,7 @@ def release_lock():
 def adquire_lock():
     if (
         os.system(
-            f"! ls {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']} &> /dev/null && touch {os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}"
+            f"! ls \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\" &> /dev/null && touch \"{os.environ['LECTURE_NOTES_ORG_LOCK_FILE']}\""
         )
         == 0
     ):
