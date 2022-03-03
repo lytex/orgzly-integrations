@@ -111,7 +111,9 @@ def build_index(path: str, level: int, write=True) -> Iterable[str]:
                     link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
                     uri = re.sub(r"page([0-9]+).png", r"\1/", link)
                     notebook = intent_uri.format(path=uri)
-                    yield "*" * (level + 1) + f" {file}\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
+                    yield "*" * (
+                        level + 1
+                    ) + f" {file}\n#+ATTR_ORG: :width 430\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
                 else:
                     yield root, file
             elif file.endswith(".txt") and file.startswith("text") and file != "text.txt":
