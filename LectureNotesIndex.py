@@ -137,16 +137,12 @@ if __name__ == "__main__":
     LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
     os.chdir(LECTURE_NOTES_DIRECTORY)
 
+    file_contents = "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n" + "\n".join(
+        build_index(LECTURE_NOTES_DIRECTORY, 0)
+    )
     adquire_lock_waiting()
     with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
-
-        print(
-            # fmt: off
-            "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n" + \
-            "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
-            # fmt: on
-            file=f,
-        )
+        f.write(file_contents)
 
     sleep(1)
     release_lock()
