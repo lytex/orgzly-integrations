@@ -141,8 +141,10 @@ if __name__ == "__main__":
     with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
 
         print(
-            "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n"
-            + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
+            # fmt: off
+            "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n" + \
+            "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0)),
+            # fmt: on
             file=f,
         )
 
