@@ -142,13 +142,17 @@ async def main():
             )
             print(cmd)
             try:
-                subprocess.run(
-                    cmd,
-                    stdout=sys.stdout,
-                    # Timeout after 2 minutes
-                    timeout=120,
-                    shell=True,
-                )
+                if (
+                    int(subprocess.check_output(["/bin/bash", "-c", "pgrep emacs | wc -l"]).decode("utf-8").strip("\n"))
+                    < 3
+                ):
+                    subprocess.run(
+                        cmd,
+                        stdout=sys.stdout,
+                        # Timeout after 2 minutes
+                        timeout=120,
+                        shell=True,
+                    )
             except subprocess.TimeoutExpired:
                 print(f"Export of {event.path} has exceeded the timeout limit")
                 continue
