@@ -1,0 +1,8 @@
+[Unit]
+Description=Create a note index in orgzly
+
+[Service]
+ExecStart=%h/.local/share/orgzly-integrations/git-sync.sh
+
+[Install]
+WantedBy=default.target

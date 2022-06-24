@@ -1,0 +1,8 @@
+[Unit]
+Description=Keep LectureNotes syncronized with org-mode
+
+[Service]
+ExecStart="${HOME}/.local/share/orgzly-integrations/lecture-notes.sh"
+
+[Install]
+WantedBy=default.target
