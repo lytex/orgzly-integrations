@@ -62,6 +62,15 @@ def add_id(node: OrgBaseNode) -> str:
             r"\1\n:ID: " + custom_to_id[node.properties["custom_id"]],
             str(node),
         )
+    elif (node.properties.get("CUSTOM_ID") in custom_to_id.keys()) and (
+        set(node.properties.keys()).intersection(set(("id", "ID", "iD", "Id"))) == set()
+    ):
+        return re.sub(
+            r"(:CUSTOM_ID: " + node.properties["custom_id"] + r")",
+            r"\1\n:ID: " + custom_to_id[node.properties["custom_id"]],
+            str(node),
+        )
+
     else:
         return str(node)
 
