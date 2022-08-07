@@ -7,6 +7,7 @@ cp launch_git-sync.sh ~/.shortcuts/tasks
 cp remove_notifs.sh ~/.shortcuts/tasks
 cp tail_log.sh ~/.shortcuts
 cp sync_now.sh ~/.shortcuts/tasks
+cp launch_id-goto.sh ~/.shortcuts
 
 
 termux-fix-shebang ../git-sync.sh
