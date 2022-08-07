@@ -3,7 +3,7 @@
 set -e
 set -x
 
-source .env
+source ../.env
 
 update_clock_goto_notification() {
 
