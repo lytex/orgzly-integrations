@@ -3,6 +3,7 @@ Description=git sync auto add, commit pull & push
 
 [Service]
 ExecStart=%h/.local/share/orgzly-integrations/git-sync.sh
+Restart=always
 
 [Install]
 WantedBy=default.target
