@@ -7,9 +7,7 @@ from typing import Iterable
 
 from dotenv import load_dotenv
 
-intent_uri = (
-    "http://127.0.0.1:8000/am?cmd=start%%20-a%%20android.intent.action.VIEW%%20-d%%20%%22lecturenotes://{path}%%22"
-)
+intent_uri = "http://127.0.0.1:8000/lecturenotes?cmd=%%22lecturenotes://{path}%%22"
 
 FORMAT = "%(asctime)s.%(msecs)03d %(levelname)s:%(filename)s:%(message)s"
 FILENAME = "123.log"
