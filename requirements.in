@@ -4,3 +4,4 @@ gitpython
 pytz
 fastapi
 uvicorn
+astral
