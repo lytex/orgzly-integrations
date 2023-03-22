@@ -135,8 +135,9 @@ if __name__ == "__main__":
     LECTURE_NOTES_PREFIX = os.getenv("LECTURE_NOTES_PREFIX")
     os.chdir(LECTURE_NOTES_DIRECTORY)
 
-    file_contents = "#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n\n" + "\n".join(
-        build_index(LECTURE_NOTES_DIRECTORY, 0)
+    file_contents = (
+        ":PROPERTIES:\n:ROAM_INCLUDE: t\n:ID:       07b916b0-2893-4206-ae9f-5974b862c791\n:END:\n#+TITLE: LectureNotesIndex\n#+STARTUP: inlineimages\n#+FILETAGS: :private:\n\n"
+        + "\n".join(build_index(LECTURE_NOTES_DIRECTORY, 0))
     )
     adquire_lock_waiting()
     with open(LECTURE_NOTES_ORG_FILE_INDEX, "w") as f:
