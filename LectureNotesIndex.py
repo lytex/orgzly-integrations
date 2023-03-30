@@ -129,7 +129,7 @@ def build_index(path: str, level: int, write=True) -> Iterable[str]:
                     notebook = intent_uri.format(path=uri)
                     # print(root + "/" + file)
                     unique_id = UUID(hex=sha256((root + "/" + file).encode("utf-8")).hexdigest()[::2])
-                    properties = f"\n:PROPERTIES:\n:ID: {unique_id}\n:ROAM_EXCLUDE: t\n:END:"
+                    properties = f":PROPERTIES:\n:ID: {unique_id}\n:ROAM_EXCLUDE: t\n:END:"
                     yield "*" * (
                         level + 1
                     ) + f" {file}\n{properties}\n#+ATTR_ORG: :width 430\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
