@@ -76,8 +76,12 @@ def ls(path: str):
 def lowercase(s: str):
     high = 10000
     if s.startswith("page") and s.endswith(".png") and s != "page.png":
-        return int(s[4:-4]) * high
-    if s.startswith("text") and s.endswith(".txt") and s != "text.txt":
+        try:
+            # sync-conflict names and such
+            return int(s[4:-4]) * high
+        except ValueError:
+            return -1
+    elif s.startswith("text") and s.endswith(".txt") and s != "text.txt":
         # Order for textN.txt, after pageN.png but before textN_1.txt
         second = 0.5
         try:
@@ -88,6 +92,11 @@ def lowercase(s: str):
             # text2.txt
             first = int(re.sub(r"text([0-9]+).txt", r"\1", s))
 
+        return first * high + second
+    elif s.startswith("key") and s.endswith(".txt") and s != "key.txt":
+        # Order for keyN.txt, after pageN.png but before keyN_1.txt
+        second = 0.5
+        first = int(re.sub(r"key([0-9]+).txt", r"\1", s))
         return first * high + second
     else:
         return -1
@@ -126,7 +135,7 @@ def build_index(path: str, level: int, write=True) -> Iterable[str]:
                     ) + f" {file}\n{properties}\n#+ATTR_ORG: :width 430\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
                 else:
                     yield root, file
-            elif file.endswith(".txt") and file.startswith("text") and file != "text.txt":
+            elif file.endswith(".txt") and (file.startswith("text") or file.startswith("key")) and file != "text.txt":
                 if write:
                     adquire_lock_waiting()
                     with open(f"{root}/{file}") as f:
