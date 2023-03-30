@@ -1,9 +1,11 @@
 import logging
 import os
 import re
+from hashlib import sha256
 from os.path import isdir, isfile
 from time import sleep
 from typing import Iterable
+from uuid import UUID
 
 from dotenv import load_dotenv
 
@@ -12,6 +14,8 @@ intent_uri = "http://127.0.0.1:8000/lecturenotes?cmd=%%22lecturenotes://{path}%%
 FORMAT = "%(asctime)s.%(msecs)03d %(levelname)s:%(filename)s:%(message)s"
 FILENAME = "123.log"
 logging.basicConfig(filename=FILENAME, level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=FORMAT)
+
+ignored = [".lv", ".stfolder"]
 
 
 def adquire_lock_waiting():
@@ -97,8 +101,13 @@ def build_index(path: str, level: int, write=True) -> Iterable[str]:
         directories, files = sorted(directories, key=lambda x: x.lower()), sorted(files, key=lowercase)
 
         for directory in directories:
+            if directory in ignored:
+                continue
             if write:
-                yield "*" * (level + 1) + f" {directory}"
+                # print(root + "/" + directory)
+                unique_id = UUID(hex=sha256((root + "/" + directory).encode("utf-8")).hexdigest()[::2])
+                properties = f"\n:PROPERTIES:\n:ID: {unique_id}\n:ROAM_EXCLUDE: t\n:END:"
+                yield "*" * (level + 1) + f" {directory}" + properties
             else:
                 yield root, directory
             yield from build_index(os.path.join(root, directory), level + 1, write)
@@ -109,9 +118,12 @@ def build_index(path: str, level: int, write=True) -> Iterable[str]:
                     link = os.path.join(root.replace(LECTURE_NOTES_DIRECTORY, ""), file)
                     uri = re.sub(r"page([0-9]+).png", r"\1/", link)
                     notebook = intent_uri.format(path=uri)
+                    # print(root + "/" + file)
+                    unique_id = UUID(hex=sha256((root + "/" + file).encode("utf-8")).hexdigest()[::2])
+                    properties = f"\n:PROPERTIES:\n:ID: {unique_id}\n:ROAM_EXCLUDE: t\n:END:"
                     yield "*" * (
                         level + 1
-                    ) + f" {file}\n#+ATTR_ORG: :width 430\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
+                    ) + f" {file}\n{properties}\n#+ATTR_ORG: :width 430\n[[file:{LECTURE_NOTES_PREFIX}{link}]]\n[[{notebook}][{file}]]"
                 else:
                     yield root, file
             elif file.endswith(".txt") and file.startswith("text") and file != "text.txt":
