@@ -14,7 +14,7 @@ if command -v "termux-info" &>/dev/null ; then
     NOTIF_CMD="termux-notification"
     NOTIF_ERROR="$NOTIF_CMD -t git-sync -c ERROR --id error --ongoing"
     NOTIF_START="$NOTIF_CMD -t git-sync_started"
-elif [ "$(uname -m)" == "armv7l" ]; then
+elif [ "$(uname -m)" == "aarch64" ]; then
     NOTIF_CMD=echo_date
     NOTIF_ERROR="$NOTIF_CMD git-sync ERROR -t 0"
     NOTIF_START="$NOTIF_CMD git-sync_started"
