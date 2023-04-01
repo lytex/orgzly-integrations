@@ -185,7 +185,7 @@ if is_command termux-info; then
             launch_orgzly_sync
         fi
     }
-elif [ "$(uname -m)" == "armv7l" ]; then
+elif [ "$(uname -m)" == "aarch64" ]; then
     # We are on a Raspberry Pi 4
 
     AM="true" # Disable command
