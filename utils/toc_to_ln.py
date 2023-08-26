@@ -14,15 +14,14 @@ args = parser.parse_args()
 
 
 def get_bookmarks(filepath: str) -> Dict[int, str]:
-    # WARNING! One page can have multiple bookmarks!
     bookmarks = {}
     with fitz.open(filepath) as doc:
         toc = doc.get_toc()  # [[lvl, title, page, …], …]
         for level, title, page in toc:
-            bookmarks[page] = title
+            bookmarks[title] = page
     return bookmarks
 
 
-for page, name in get_bookmarks(args.filename).items():
-    with open(f"key{page}.txt", "w") as f:
-        f.write(name)
+for name, page in get_bookmarks(args.filename).items():
+    with open(f"key{page}.txt", "a+") as f:
+        f.write(name + "\n")
