@@ -40,7 +40,7 @@ check_conflict() {
         # then, we assume it's a merge conflict, otherwise, we assume connection has been lost
         # TODO grep $1 against something like "automerge failed" (see git pull when there is a merge conflict)
         # Lost of connection may be notified as false conflicts
-        eval "$TIMEOUT_PING" && [ -n "$(git status -s)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
+        eval "$TIMEOUT_PING" && [ -n "$(git status --porcelain)" ] && $NOTIF_CONFLICT || $NOTIF_LOST_CONNECTION
         echo $1
     fi
 }
@@ -89,7 +89,7 @@ git_add_commit() {
         ADD_CODE=0
         git add . || ADD_CODE=$?
         user_date="$(git config user.name)@$(date +'%Y-%m-%d %H:%M:%S')"
-        changed_files=$(git status -s | awk '{$1=""; print $0}' | tr -d '\n')
+        changed_files=$(git status --porcelain | awk '{$1=""; print $0}' | tr -d '\n')
         # git commit fails if the repo it there are not any changes
         COMMIT_CODE=0
         COMMIT_RESULT=$(git commit -m "autocommit $user_date $changed_files") || COMMIT_CODE=$?
