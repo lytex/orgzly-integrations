@@ -12,10 +12,25 @@ main = shakeArgs shakeOptions $ do
     -- Define the pattern for pagefull files
     let pagefullPattern = "pagefull([0-9]+)\\.png$" :: String
     
-    -- Use a phony target to discover and build all pagefull files
+    -- Discover all base page files to determine what pagefull files should exist
     phony "all" $ do
-        files <- getDirectoryFiles "." ["pagefull*.png"]
-        need files
+        -- Find all base page files
+        basePages <- getDirectoryFiles "." ["page*.png"]
+        
+        -- Extract the numbers using regex
+        let basePattern = "page([0-9]+)\\.png$" :: String
+        let pageNumbers = [num | page <- basePages,
+                           let (_, _, _, groups) = page =~ basePattern :: (String, String, String, [String]),
+                           num <- take 1 groups]
+        
+        -- Create targets for all pagefull files corresponding to base pages
+        let targets = ["pagefull" ++ num ++ ".png" | num <- pageNumbers]
+        
+        -- Print discovered targets
+        liftIO $ putStrLn $ "Building targets: " ++ unwords targets
+        
+        -- Need these targets
+        need targets
     
     -- Default to building all
     want ["all"]
@@ -26,30 +41,41 @@ main = shakeArgs shakeOptions $ do
         let (_, _, _, groups) = out =~ pagefullPattern :: (String, String, String, [String])
         case groups of
             (num:_) -> do
-                -- Define the dependencies with proper file extensions
+                -- Define the base dependency
                 let basePage = "page" ++ num ++ ".png"
-                let deps = [basePage]
                 
-                -- Check if the _2 and _3 variants exist
-                pageVariant2 <- doesFileExist ("page" ++ num ++ "_2.png")
-                pageVariant3 <- doesFileExist ("page" ++ num ++ "_3.png")
+                -- Check if the base page exists
+                baseExists <- doesFileExist basePage
                 
-                -- Add existing variants to dependencies
-                let deps' = deps ++ ["page" ++ num ++ "_2.png" | pageVariant2] 
-                                 ++ ["page" ++ num ++ "_3.png" | pageVariant3]
+                -- If base doesn't exist, fail the build
+                unless baseExists $ 
+                    error $ "Base page file " ++ basePage ++ " does not exist"
+                
+                -- Always check for _2 and _3 variants, even if they didn't exist before
+                let variant2 = "page" ++ num ++ "_2.png"
+                let variant3 = "page" ++ num ++ "_3.png"
+                
+                variant2Exists <- doesFileExist variant2
+                variant3Exists <- doesFileExist variant3
+                
+                -- Build the dependencies list based on what exists
+                let deps = [basePage] 
+                         ++ [variant2 | variant2Exists]
+                         ++ [variant3 | variant3Exists]
                 
                 -- Print the command before executing it
-                let cmdArgs = ["magick"] ++ deps' ++ ["-layers", "flatten", out]
+                let cmdArgs = ["magick"] ++ deps ++ ["-layers", "flatten", out]
                 liftIO $ putStrLn $ "Executing command: " ++ unwords cmdArgs
                 
-                -- Declare dependencies
-                need deps'
+                -- Declare dependencies - this ensures rebuilding if any source file changes
+                need deps
                 
-                -- Command to build the pagefull file using magick with -layers flatten
-                cmd_ "magick" deps' "-layers" "flatten" out
+                -- Command to build the pagefull file
+                cmd_ "magick" deps "-layers" "flatten" out
             _ -> error $ "Could not extract number from " ++ out
     
     -- Phony rule to rebuild everything
     phony "clean" $ do
         putNormal "Cleaning files"
         removeFilesAfter "." ["pagefull*.png"]
+
