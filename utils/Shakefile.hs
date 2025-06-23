@@ -31,6 +31,7 @@ main = shakeArgs shakeOptions $ do
         
         -- Need these targets
         need targets
+        need ["index.org"]
     
     -- Default to building all
     want ["all"]
@@ -73,9 +74,30 @@ main = shakeArgs shakeOptions $ do
                 -- Command to build the pagefull file
                 cmd_ "magick" deps "-layers" "flatten" out
             _ -> error $ "Could not extract number from " ++ out
+
+    "index.org" %> \out -> do
+        -- TODO: necesita dos pasadas, en la primera crea el header pero no los headings
+        -- Find all full page files
+        fullPages <- getDirectoryFiles "." ["pagefull*.png"]
+        need fullPages
+
+
+        -- Extract the numbers using regex
+        let basePattern = "pagefull([0-9]+)\\.png$" :: String
+        let pageNumbers = [num | page <- fullPages,
+                           let (_, _, _, groups) = page =~ basePattern :: (String, String, String, [String]),
+                           num <- take 1 groups]
+        -- Create targets for all pagefull files corresponding to base pages
+        let targets = ["pagefull" ++ num ++ ".png" | num <- pageNumbers]
+
+        let header = "#+STARTUP: inlineimages\n#+FILETAGS: :private:\n" :: String
+        let heading = ["* pagefull" ++ num ++ ".png\n:PROPERTIES:\n:ROAM_EXCLUDE: t\n:END:\n#+ATTR_ORG: :width 430\n[[file:" ++ "pagefull" ++ num ++ ".png]]" | num <- pageNumbers]
+        let allContents = header ++ unlines heading
+        writeFile' out allContents
     
     -- Phony rule to rebuild everything
     phony "clean" $ do
         putNormal "Cleaning files"
         removeFilesAfter "." ["pagefull*.png"]
+        removeFilesAfter "." ["index.org"]
 
