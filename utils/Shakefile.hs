@@ -6,6 +6,10 @@ import Development.Shake.FilePath
 import Control.Monad
 import Data.List
 import Text.Regex.TDFA
+import Text.Printf
+import qualified System.Directory as Dir
+import Data.Time
+import Control.Exception (try, IOException)
 
 main :: IO ()
 main = shakeArgs shakeOptions $ do
@@ -33,6 +37,7 @@ main = shakeArgs shakeOptions $ do
         need targets
         need ["index.org"]
         need ["index.html"]
+        need ["sync-files"]
     
     -- Default to building all
     want ["all"]
@@ -97,12 +102,78 @@ main = shakeArgs shakeOptions $ do
         let allContents = header ++ unlines heading
         writeFile' out allContents
 
-    "index.html" %> \out -> do
-        -- Depend on the org file
-        need ["index.org"]
+    -- Bidirectional sync rule
+    phony "sync-files" $ do
+        orgExists <- liftIO $ Dir.doesFileExist "index.org"
+        htmlExists <- liftIO $ Dir.doesFileExist "index.html"
         
-        -- Convert org to HTML using pandoc
+        case (orgExists, htmlExists) of
+            (False, False) -> return () -- Nothing to sync
+            (True, False) -> do
+                -- Only org exists, create HTML
+                putNormal "Creating index.html from index.org"
+                need ["index.html"]
+            (False, True) -> do
+                -- Only HTML exists, create org
+                putNormal "Creating index.org from index.html"
+                need ["index.org.from-html"]
+            (True, True) -> do
+                -- Both exist, sync based on modification time
+                orgTimeResult <- liftIO $ (try :: IO UTCTime -> IO (Either IOException UTCTime)) (Dir.getModificationTime "index.org")
+                htmlTimeResult <- liftIO $ (try :: IO UTCTime -> IO (Either IOException UTCTime)) (Dir.getModificationTime "index.html")
+                
+                case (orgTimeResult, htmlTimeResult) of
+                    (Right orgTime, Right htmlTime) -> do
+                        if orgTime > htmlTime
+                        then do
+                            putNormal "index.org is newer, updating index.html"
+                            need ["index.html"]
+                        else if htmlTime > orgTime
+                        then do
+                            putNormal "index.html is newer, updating index.org"
+                            need ["index.org.from-html"]
+                        else
+                            putNormal "Files are in sync"
+                    _ -> putNormal "Could not compare file times"
+
+    "index.html" %> \out -> do
+        -- Only generate if we're not in a sync operation or if explicitly called
+        need ["index.org"]
+        putNormal "pandoc index.org -o index.html --standalone"
         cmd_ "pandoc" ["index.org"] ["-o", out] ["--standalone"]
+        cmd_ "mv index.org.tmp index.org"  -- It does work?
+        -- putNormal "pandoc index.html -o index.org.tmp --to org"
+        -- cmd_ "pandoc" ["index.html"] ["-o", "index.org.tmp"] ["--to", "org"]
+
+    -- Special target to update org from HTML
+    phony "index.org.from-html" $ do
+        htmlExists <- doesFileExist "index.html"
+        unless htmlExists $
+            error "index.html does not exist"
+        
+        -- Convert HTML back to org
+        putNormal "pandoc index.html -o index.org.tmp --to org"
+        cmd_ "pandoc" ["index.html"] ["-o", "index.org.tmp"] ["--to", "org"]
+        
+        -- Read the generated org content
+        -- tmpContent <- readFile' "index.org.tmp"
+        
+        -- -- Extract only the content part (skip the generated header)
+        -- let contentLines = lines tmpContent
+        -- let relevantLines = dropWhile (not . isPrefixOf "* pagefull") contentLines
+        -- 
+        -- -- Reconstruct with proper header
+        -- let header = "#+STARTUP: inlineimages\n#+FILETAGS: :private:\n"
+        -- let newContent = header ++ unlines relevantLines
+        
+        -- Write the final org file
+        -- writeFile' "index.org" newContent -- Doesn't work
+        cmd_ "cp index.org.tmp index.org"   -- Doesn't work either??
+        
+        -- Clean up temp file
+        -- removeFilesAfter "." ["index.org.tmp"]
+        
+        putNormal "Updated index.org from index.html"
     
     -- Phony rule to rebuild everything
     phony "clean" $ do
@@ -110,3 +181,5 @@ main = shakeArgs shakeOptions $ do
         removeFilesAfter "." ["pagefull*.png"]
         removeFilesAfter "." ["index.org"]
         removeFilesAfter "." ["index.html"]
+        removeFilesAfter "." ["index.org.tmp"]
+
