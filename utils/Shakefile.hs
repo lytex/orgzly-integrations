@@ -32,6 +32,7 @@ main = shakeArgs shakeOptions $ do
         -- Need these targets
         need targets
         need ["index.org"]
+        need ["index.html"]
     
     -- Default to building all
     want ["all"]
@@ -95,9 +96,17 @@ main = shakeArgs shakeOptions $ do
         let heading = ["* pagefull" ++ num ++ ".png\n:PROPERTIES:\n:ROAM_EXCLUDE: t\n:END:\n#+ATTR_ORG: :width 430\n[[file:" ++ "pagefull" ++ num ++ ".png]]" | num <- pageNumbers]
         let allContents = header ++ unlines heading
         writeFile' out allContents
+
+    "index.html" %> \out -> do
+        -- Depend on the org file
+        need ["index.org"]
+        
+        -- Convert org to HTML using pandoc
+        cmd_ "pandoc" ["index.org"] ["-o", out] ["--standalone"]
     
     -- Phony rule to rebuild everything
     phony "clean" $ do
         putNormal "Cleaning files"
         removeFilesAfter "." ["pagefull*.png"]
         removeFilesAfter "." ["index.org"]
+        removeFilesAfter "." ["index.html"]
