@@ -76,19 +76,20 @@ main = shakeArgs shakeOptions $ do
             _ -> error $ "Could not extract number from " ++ out
 
     "index.org" %> \out -> do
-        -- TODO: necesita dos pasadas, en la primera crea el header pero no los headings
-        -- Find all full page files
-        fullPages <- getDirectoryFiles "." ["pagefull*.png"]
-        need fullPages
-
-
+        -- Find all base page files (same logic as in "all" rule)
+        basePages <- getDirectoryFiles "." ["page*.png"]
+        
         -- Extract the numbers using regex
-        let basePattern = "pagefull([0-9]+)\\.png$" :: String
-        let pageNumbers = [num | page <- fullPages,
+        let basePattern = "page([0-9]+)\\.png$" :: String
+        let pageNumbers = [num | page <- basePages,
                            let (_, _, _, groups) = page =~ basePattern :: (String, String, String, [String]),
                            num <- take 1 groups]
+        
         -- Create targets for all pagefull files corresponding to base pages
         let targets = ["pagefull" ++ num ++ ".png" | num <- pageNumbers]
+        
+        -- Declare dependency on the pagefull files
+        need targets
 
         let header = "#+STARTUP: inlineimages\n#+FILETAGS: :private:\n" :: String
         let heading = ["* pagefull" ++ num ++ ".png\n:PROPERTIES:\n:ROAM_EXCLUDE: t\n:END:\n#+ATTR_ORG: :width 430\n[[file:" ++ "pagefull" ++ num ++ ".png]]" | num <- pageNumbers]
@@ -100,4 +101,3 @@ main = shakeArgs shakeOptions $ do
         putNormal "Cleaning files"
         removeFilesAfter "." ["pagefull*.png"]
         removeFilesAfter "." ["index.org"]
-
